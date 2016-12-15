@@ -57,7 +57,7 @@ update msg model =
 
                 commands =
                     Cmd.batch
-                        [ WebSocket.send "ws://localhost:4567/chat" ("registration:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeChatRegistration { participant = participant, chatRoom = chatRoom }))
+                        [ WebSocket.send "ws://localhost:4567/chat" ("registration:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeChatRegistration <| BusinessTypes.ChatRegistration participant chatRoom))
                         , RestClient.getChatRoom chatRoom.id SetChatHistory
                         ]
             in
@@ -70,7 +70,7 @@ update msg model =
             ( { model | message = message }, Cmd.none )
 
         SendMessage message ->
-            ( { model | message = "" }, WebSocket.send "ws://localhost:4567/chat" ("message:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeMessage { message = message })) )
+            ( { model | message = "" }, WebSocket.send "ws://localhost:4567/chat" ("message:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeMessage <| BusinessTypes.Message message)) )
 
         ReceivedMessage message ->
             ( { model | chatHistory = model.chatHistory ++ message }, Cmd.none )

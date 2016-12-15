@@ -8,6 +8,7 @@ import BusinessTypes
 import RestClient
 import ChatWindow
 import Utils
+import Tuple exposing (mapFirst, mapSecond)
 import Time
 
 
@@ -31,19 +32,9 @@ type alias Model =
     }
 
 
-getChatWindow : Model -> ChatWindow.Model
-getChatWindow model =
-    model.chatWindow
-
-
 setChatWindow : Model -> ChatWindow.Model -> Model
 setChatWindow model =
     (\chatWindow -> { model | chatWindow = chatWindow })
-
-
-getParticipant : Model -> BusinessTypes.Participant
-getParticipant model =
-    model.participant
 
 
 getChatRoom : Model -> Int -> Maybe BusinessTypes.ChatRoom
@@ -84,10 +75,10 @@ update msg model =
                 newModel =
                     { model | clicked = id }
             in
-                ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (Just (getParticipant newModel)) )
+                ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (Just newModel.participant) )
 
         ChatWindowMsg subMsg ->
-            Utils.update ChatWindow.update subMsg (getChatWindow model) (setChatWindow model) ChatWindowMsg
+            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (setChatWindow model) |> mapSecond (Cmd.map ChatWindowMsg)
 
         ChangeTitle title ->
             ( { model | newChatRoomTitle = title }, Cmd.none )

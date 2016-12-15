@@ -6,6 +6,7 @@ import Utils
 import NavBar exposing (..)
 import EnterParticipantName
 import RoomList
+import Tuple exposing (mapFirst, mapSecond)
 
 
 type Msg
@@ -25,29 +26,9 @@ type alias Model =
     }
 
 
-getProgramState : Model -> ProgramState
-getProgramState =
-    .programState
-
-
-setProgramState : Model -> ProgramState -> Model
-setProgramState model =
-    (\value -> { model | programState = value })
-
-
-getRoomList : Model -> RoomList.Model
-getRoomList =
-    .roomList
-
-
 setRoomList : Model -> RoomList.Model -> Model
 setRoomList model =
     (\value -> { model | roomList = value })
-
-
-getEnterParticipantName : Model -> EnterParticipantName.Model
-getEnterParticipantName =
-    .enterParticipantName
 
 
 setEnterParticipantName : Model -> EnterParticipantName.Model -> Model
@@ -79,13 +60,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         EnterParticipantNameMsg (EnterParticipantName.Exit participant) ->
-            ( setProgramState model RoomList, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
+            ( { model | programState = RoomList }, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
 
         EnterParticipantNameMsg subMsg ->
-            Utils.update EnterParticipantName.update subMsg (getEnterParticipantName model) (setEnterParticipantName model) EnterParticipantNameMsg
+            (EnterParticipantName.update subMsg model.enterParticipantName) |> mapFirst (setEnterParticipantName model) |> mapSecond (Cmd.map EnterParticipantNameMsg)
 
         RoomListMsg subMsg ->
-            Utils.update RoomList.update subMsg (getRoomList model) (setRoomList model) RoomListMsg
+            (RoomList.update subMsg model.roomList) |> mapFirst (setRoomList model) |> mapSecond (Cmd.map RoomListMsg)
 
 
 viewMainArea : Model -> Html Msg
