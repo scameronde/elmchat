@@ -8,6 +8,7 @@ import BusinessTypes
 import RestClient
 import ChatWindow
 import Utils
+import Time
 
 
 type Msg
@@ -16,6 +17,10 @@ type Msg
     | ChatRooms (Result Http.Error (List BusinessTypes.ChatRoom))
     | Clicked Int
     | ChatWindowMsg ChatWindow.Msg
+    | ChangeTitle String
+    | PostChatRoom Model
+    | PostChatRoomResult (Result Http.Error Int)
+    | TickTock Time.Time
 
 
 type alias Model =
@@ -23,6 +28,7 @@ type alias Model =
     , chatRooms : List BusinessTypes.ChatRoom
     , chatWindow : ChatWindow.Model
     , clicked : Int
+    , newChatRoomTitle : String
     }
 
 
@@ -56,6 +62,7 @@ init =
           , chatRooms = []
           , chatWindow = chatWindowModel
           , clicked = 0
+          , newChatRoomTitle = ""
           }
         , Cmd.batch [ Cmd.map ChatWindowMsg chatWindowCmd, Cmd.none ]
         )
@@ -86,6 +93,21 @@ update msg model =
         ChatWindowMsg subMsg ->
             Utils.update ChatWindow.update subMsg (getChatWindow model) (setChatWindow model) ChatWindowMsg
 
+        ChangeTitle title ->
+            ( { model | newChatRoomTitle = title }, Cmd.none )
+
+        PostChatRoom model ->
+            ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = 0, title = model.newChatRoomTitle } PostChatRoomResult )
+
+        PostChatRoomResult (Ok id) ->
+            ( model, RestClient.getChatRooms ChatRooms )
+
+        PostChatRoomResult (Err error) ->
+            ( model, Cmd.none )
+
+        TickTock time ->
+            ( model, RestClient.getChatRooms ChatRooms )
+
 
 viewChatRooms : Model -> Html Msg
 viewChatRooms model =
@@ -98,12 +120,23 @@ viewChatRooms model =
         ]
 
 
+viewNewChatRoom : Model -> Html Msg
+viewNewChatRoom model =
+    Html.form [ onSubmit (PostChatRoom model) ]
+        [ div [ class "form-group" ]
+            [ label [ for "titleInput" ] [ text "New Chat Room" ]
+            , input [ id "titleInput", type_ "text", value model.newChatRoomTitle, class "form-control", onInput ChangeTitle ] []
+            ]
+        , button [ class "btn btn-primary" ] [ text "Create" ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "row" ]
         [ div [ class "col-md-6" ]
             [ viewChatRooms model
-            , div [] [ text <| "Clicked Id: " ++ toString model.clicked ]
+            , viewNewChatRoom model
             ]
         , div [ class "col-md-6" ]
             [ Html.map ChatWindowMsg (ChatWindow.view model.chatWindow)
@@ -113,4 +146,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map ChatWindowMsg (ChatWindow.subscriptions model.chatWindow)
+    Sub.batch
+        [ Sub.map ChatWindowMsg (ChatWindow.subscriptions model.chatWindow)
+        , Time.every Time.second TickTock
+        ]

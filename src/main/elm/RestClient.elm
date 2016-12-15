@@ -13,6 +13,15 @@ postParticipant participant msg =
         Http.send msg postParticipantRequest
 
 
+postChatRoom : BusinessTypes.ChatRoom -> (Result Http.Error Int -> msg) -> Cmd msg
+postChatRoom chatRoom msg =
+    let
+        postChatRoomRequest =
+            Http.post "http://localhost:4567/chatRoom" (Http.jsonBody (BusinessTypes.encodeChatRoom chatRoom)) BusinessTypes.decodeId
+    in
+        Http.send msg postChatRoomRequest
+
+
 getChatRooms : (Result Http.Error (List BusinessTypes.ChatRoom) -> msg) -> Cmd msg
 getChatRooms msg =
     let
