@@ -1,4 +1,4 @@
-module RoomList exposing (Msg(Exit, Open), Model, init, update, view, subscriptions)
+module RoomList exposing (Msg(Open), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -12,8 +12,7 @@ import Time
 
 
 type Msg
-    = Exit
-    | Open BusinessTypes.Participant
+    = Open BusinessTypes.Participant
     | ChatRooms (Result Http.Error (List BusinessTypes.ChatRoom))
     | Clicked Int
     | ChatWindowMsg ChatWindow.Msg
@@ -64,16 +63,13 @@ init =
           , clicked = 0
           , newChatRoomTitle = ""
           }
-        , Cmd.batch [ Cmd.map ChatWindowMsg chatWindowCmd, Cmd.none ]
+        , Cmd.batch [ Cmd.map ChatWindowMsg chatWindowCmd ]
         )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Exit ->
-            ( model, Cmd.none )
-
         Open participant ->
             ( { model | participant = participant }, RestClient.getChatRooms ChatRooms )
 

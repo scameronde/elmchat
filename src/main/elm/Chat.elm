@@ -9,8 +9,7 @@ import RoomList
 
 
 type Msg
-    = None
-    | EnterParticipantNameMsg EnterParticipantName.Msg
+    = EnterParticipantNameMsg EnterParticipantName.Msg
     | RoomListMsg RoomList.Msg
 
 
@@ -72,7 +71,6 @@ init =
         , Cmd.batch
             [ Cmd.map EnterParticipantNameMsg enterParticipantNameCmd
             , Cmd.map RoomListMsg roomListCmd
-            , Cmd.none
             ]
         )
 
@@ -80,24 +78,14 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EnterParticipantNameMsg subMsg ->
-            case subMsg of
-                EnterParticipantName.Exit participant ->
-                    ( setProgramState model RoomList, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
+        EnterParticipantNameMsg (EnterParticipantName.Exit participant) ->
+            ( setProgramState model RoomList, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
 
-                _ ->
-                    Utils.update EnterParticipantName.update subMsg (getEnterParticipantName model) (setEnterParticipantName model) EnterParticipantNameMsg
+        EnterParticipantNameMsg subMsg ->
+            Utils.update EnterParticipantName.update subMsg (getEnterParticipantName model) (setEnterParticipantName model) EnterParticipantNameMsg
 
         RoomListMsg subMsg ->
-            case subMsg of
-                RoomList.Exit ->
-                    ( model, Cmd.none )
-
-                _ ->
-                    Utils.update RoomList.update subMsg (getRoomList model) (setRoomList model) RoomListMsg
-
-        None ->
-            ( model, Cmd.none )
+            Utils.update RoomList.update subMsg (getRoomList model) (setRoomList model) RoomListMsg
 
 
 viewMainArea : Model -> Html Msg
