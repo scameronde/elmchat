@@ -13,4 +13,7 @@ Especially with Elm I wanted to explore a few aspects:
 - effects (commands and subscription)
 - JSON and REST
 - WebSockets
- 
+
+## Detailed information
+
+- [BaseSetup](BaseSetup.md)

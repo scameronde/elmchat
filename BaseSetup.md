@@ -13,7 +13,7 @@ Als Elm-Datei nehmen wir mal Main.elm. Außerdem nutzen wir Bootstrap und jQuery
 Hier eine Beispieldatei:
 
 ```json
-{ 
+{
     "version": "1.0.0",
     "summary": "helpful summary of your project, less than 80 characters",
     "repository": "https://github.com/user/project.git",
@@ -58,3 +58,59 @@ Das sollte für eine erste HTML Datei reichen.
 </html>
 ```
 
+## `Main.elm`
+
+```elm
+module Main exposing (..)
+
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+
+
+type alias Flags =
+    { debug : Bool }
+
+
+type Msg
+    = None
+
+
+type alias Model =
+    {}
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( {}, Cmd.none )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    ( model, Cmd.none )
+
+
+view : Model -> Html Msg
+view model =
+    div [] [ text "Hello World!" ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
+
+
+
+-- MAIN
+
+
+main : Program Flags Model Msg
+main =
+    Html.program
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+
+```
