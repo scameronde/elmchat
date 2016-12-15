@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.scameronde</groupId>
+  <artifactId>elm-chat</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>com.sparkjava</groupId>
+      <artifactId>spark-core</artifactId>
+      <version>2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>6.1.26</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-annotations</artifactId>
+      <version>6.1.26</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.javaslang</groupId>
+      <artifactId>javaslang</artifactId>
+      <version>2.0.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.5.0</version>
+        <configuration>
+          <mainClass>de.scameronde.chat.Server</mainClass>
+          <arguments>
+          </arguments>
+        </configuration>
+      </plugin>
+
+      <!--<plugin>-->
+        <!--<groupId>nl.stil4m</groupId>-->
+        <!--<artifactId>elm-maven-plugin</artifactId>-->
+        <!--<version>1.0.5</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>Make Elm Source</id>-->
+            <!--<phase>generate-sources</phase>-->
+            <!--<goals>-->
+              <!--<goal>make</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<inputFile>src/main/elm/Chat.elm</inputFile>-->
+              <!--<outputFile>src/main/elm/Chat.js</outputFile>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
+    </plugins>
+  </build>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>stil4m-releases</id>
+      <name>stil4m-releases</name>
+      <url>https://github.com/stil4m/maven-repository/raw/master/releases/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+</project>
