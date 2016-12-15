@@ -60,6 +60,31 @@ encodeChatRoom record =
 
 
 
+-- ChatRegistration
+
+
+type alias ChatRegistration =
+    { participant : Participant
+    , chatRoom : ChatRoom
+    }
+
+
+decodeChatRegistration : Json.Decode.Decoder ChatRegistration
+decodeChatRegistration =
+    Json.Decode.Pipeline.decode ChatRegistration
+        |> Json.Decode.Pipeline.required "participant" decodeParticipant
+        |> Json.Decode.Pipeline.required "chatRoom" decodeChatRoom
+
+
+encodeChatRegistration : ChatRegistration -> Json.Encode.Value
+encodeChatRegistration record =
+    Json.Encode.object
+        [ ( "participant", encodeParticipant record.participant )
+        , ( "chatRoom", encodeChatRoom record.chatRoom )
+        ]
+
+
+
 -- Message
 
 
@@ -114,3 +139,12 @@ type alias Id =
 decodeId : Json.Decode.Decoder Int
 decodeId =
     Json.Decode.int
+
+
+
+-- Utils
+
+
+jsonAsString : Json.Encode.Value -> String
+jsonAsString json =
+    Json.Encode.encode 0 json

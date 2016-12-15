@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.scameronde.chat.businesstypes.ChatRoom;
+import de.scameronde.chat.businesstypes.MessageLog;
+import de.scameronde.chat.businesstypes.Participant;
+
 public class InMemoryRepository implements Repository {
   static int idcounter = 1;
 
@@ -13,10 +17,18 @@ public class InMemoryRepository implements Repository {
   Map<ChatRoom, String> logs = new HashMap<>();
 
   public InMemoryRepository() {
-    chatRooms.add(new ChatRoom(1, "Room 1"));
-    chatRooms.add(new ChatRoom(2, "Room 2"));
-    chatRooms.add(new ChatRoom(3, "Room 3"));
-    chatRooms.add(new ChatRoom(4, "Room 4"));
+    ChatRoom chatRoom1 = new ChatRoom(1, "Room 1");
+    ChatRoom chatRoom2 = new ChatRoom(2, "Room 2");
+    ChatRoom chatRoom3 = new ChatRoom(3, "Room 3");
+    ChatRoom chatRoom4 = new ChatRoom(4, "Room 4");
+    chatRooms.add(chatRoom1);
+    chatRooms.add(chatRoom2);
+    chatRooms.add(chatRoom3);
+    chatRooms.add(chatRoom4);
+    logs.put(chatRoom1, "");
+    logs.put(chatRoom2, "");
+    logs.put(chatRoom3, "");
+    logs.put(chatRoom4, "");
   }
 
   @Override
@@ -43,12 +55,11 @@ public class InMemoryRepository implements Repository {
 
   @Override
   public void addMessage(ChatRoom chatRoom, String message, Participant participant) {
-    String longMessage = participant.toString() + " > " + message;
-    logs.merge(chatRoom, longMessage, String::concat);
+    logs.merge(chatRoom, message, String::concat);
   }
 
   @Override
-  public String getMessageLog(ChatRoom chatRoom) {
-    return logs.get(chatRoom);
+  public MessageLog getMessageLog(ChatRoom chatRoom) {
+    return new MessageLog(logs.get(chatRoom));
   }
 }

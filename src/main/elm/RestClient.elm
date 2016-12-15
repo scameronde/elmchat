@@ -20,3 +20,12 @@ getChatRooms msg =
             Http.get "http://localhost:4567/chatRoom" BusinessTypes.decodeChatRooms
     in
         Http.send msg getChatRoomsRequest
+
+
+getChatRoom : Int -> (Result Http.Error BusinessTypes.MessageLog -> msg) -> Cmd msg
+getChatRoom id msg =
+    let
+        getChatRoomRequest =
+            Http.get ("http://localhost:4567/chatRoom/" ++ toString id) BusinessTypes.decodeMessageLog
+    in
+        Http.send msg getChatRoomRequest

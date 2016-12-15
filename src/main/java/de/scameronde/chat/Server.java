@@ -1,17 +1,18 @@
 package de.scameronde.chat;
 
+import static de.scameronde.chat.JsonUtils.dataToJson;
+import static de.scameronde.chat.JsonUtils.jsonToData;
 import static spark.Spark.get;
 import static spark.Spark.options;
 import static spark.Spark.post;
 import static spark.Spark.webSocket;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import de.scameronde.chat.businesstypes.ChatRoom;
+import de.scameronde.chat.businesstypes.MessageLog;
+import de.scameronde.chat.businesstypes.Participant;
 
 import javaslang.control.Either;
 import spark.Request;
@@ -22,6 +23,7 @@ public class Server {
 
   public static void main(String[] args) {
     // register web socket endpoint for all running chats
+    ChatHandler.setRepository(repository);
     webSocket("/chat", ChatHandler.class);
 
     // this is only necessary for cross site development
@@ -38,7 +40,7 @@ public class Server {
     get("/chatRoom/:chatRoomId", ((request, response) -> {
       Integer id = getIntParameter(request, ":chatRoomId");
       Optional<ChatRoom> chatRoom = findChatRoom(id);
-      Optional<String> messageLog = chatRoom.map(cr -> repository.getMessageLog(cr));
+      Optional<MessageLog> messageLog = chatRoom.map(cr -> repository.getMessageLog(cr));
       Either<Exception, Optional<String>> jsonMessageLog = dataToJson(messageLog);
       return createOptionalResponse(response, jsonMessageLog);
     }));
@@ -47,7 +49,7 @@ public class Server {
     post("/participant", ((request, response) -> {
       Either<Exception, Participant> participant = jsonToData(request.body(), Participant.class);
       if (participant.isRight()) {
-        Integer id = repository.addParticipant(participant.right().get());
+        Integer id = repository.addParticipant(participant.get());
         Either<Exception, String> jsonId = participant.map(p -> id.toString());
         return createResponse(response, jsonId);
       }
@@ -60,7 +62,7 @@ public class Server {
     post("/chatRoom", ((request, response) -> {
       Either<Exception, ChatRoom> chatRoom = jsonToData(request.body(), ChatRoom.class);
       if (chatRoom.isRight()) {
-        Integer id = repository.addChatRoom(chatRoom.right().get());
+        Integer id = repository.addChatRoom(chatRoom.get());
         Either<Exception, String> jsonId = chatRoom.map(c -> id.toString());
         return createResponse(response, jsonId);
       }
@@ -90,7 +92,7 @@ public class Server {
 
   private static String createResponse(Response response, Either<Exception, String> payload) {
     if (payload.isRight()) {
-      String payloadData = payload.right().get();
+      String payloadData = payload.get();
       setResponseOK(response);
       return payloadData;
     }
@@ -103,7 +105,7 @@ public class Server {
   private static String createOptionalResponse(Response response,
                                                Either<Exception, Optional<String>> payload) {
     if (payload.isRight()) {
-      Optional<String> payloadData = payload.right().get();
+      Optional<String> payloadData = payload.get();
       if (payloadData.isPresent()) {
         setResponseOK(response);
         return payloadData.get();
@@ -143,43 +145,4 @@ public class Server {
     return Integer.parseInt(param);
   }
 
-  private static <T> Either<Exception, Optional<String>> dataToJson(Optional<T> data) {
-    if (data.isPresent()) {
-      return internalDataToJson(data.get()).map(json -> Optional.of(json));
-    }
-    else {
-      return Either.right(Optional.empty());
-    }
-  }
-
-  private static <T> Either<Exception, String> dataToJson(T data) {
-    return internalDataToJson(data);
-  }
-
-  private static <T> Either<Exception, String> internalDataToJson(T data) {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.enable(SerializationFeature.INDENT_OUTPUT);
-      StringWriter sw = new StringWriter();
-      mapper.writeValue(sw, data);
-      sw.close();
-      return Either.right(sw.toString());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return Either.left(e);
-    }
-  }
-
-  private static <T> Either<Exception, T> jsonToData(String json, Class<T> clazz) {
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      T creation = mapper.readValue(json, clazz);
-      return Either.right(creation);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return Either.left(e);
-    }
-  }
 }

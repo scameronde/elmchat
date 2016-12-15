@@ -116,6 +116,7 @@ view model =
         [ viewNavBar model
         , div [ class "container" ]
             [ div [ class "view-area" ] [ viewMainArea model ]
+            , div [ class "debug" ] [ text <| toString model ]
             ]
         ]
 

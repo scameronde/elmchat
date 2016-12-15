@@ -3,6 +3,8 @@ module ChatWindow exposing (Msg(Exit, Open), Model, init, update, view, subscrip
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http
+import RestClient
 import WebSocket
 import BusinessTypes
 
@@ -10,6 +12,7 @@ import BusinessTypes
 type Msg
     = Exit
     | Open (Maybe BusinessTypes.ChatRoom) (Maybe BusinessTypes.Participant)
+    | SetChatHistory (Result Http.Error BusinessTypes.MessageLog)
     | SetMessage String
     | SendMessage String
     | ReceivedMessage String
@@ -20,6 +23,7 @@ type alias Model =
     , chatRoom : Maybe BusinessTypes.ChatRoom
     , message : String
     , chatHistory : String
+    , error : String
     }
 
 
@@ -29,6 +33,7 @@ init =
       , chatRoom = Nothing
       , message = ""
       , chatHistory = ""
+      , error = ""
       }
     , Cmd.none
     )
@@ -52,8 +57,8 @@ update msg model =
 
                 commands =
                     Cmd.batch
-                        [ WebSocket.send "ws://localhost:4567/chat" ("participant:" ++ toString participant.id ++ "," ++ participant.name)
-                        , WebSocket.send "ws://localhost:4567/chat" ("chatRoom:" ++ toString chatRoom.id)
+                        [ WebSocket.send "ws://localhost:4567/chat" ("registration:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeChatRegistration { participant = participant, chatRoom = chatRoom }))
+                        , RestClient.getChatRoom chatRoom.id SetChatHistory
                         ]
             in
                 ( newModel, commands )
@@ -65,10 +70,16 @@ update msg model =
             ( { model | message = message }, Cmd.none )
 
         SendMessage message ->
-            ( { model | message = "" }, WebSocket.send "ws://localhost:4567/chat" ("message:" ++ message) )
+            ( { model | message = "" }, WebSocket.send "ws://localhost:4567/chat" ("message:" ++ (BusinessTypes.jsonAsString <| BusinessTypes.encodeMessage { message = message })) )
 
         ReceivedMessage message ->
-            ( { model | chatHistory = model.chatHistory ++ "\n" ++ message }, Cmd.none )
+            ( { model | chatHistory = model.chatHistory ++ message }, Cmd.none )
+
+        SetChatHistory (Ok messageLog) ->
+            ( { model | chatHistory = messageLog.messageLog }, Cmd.none )
+
+        SetChatHistory (Err error) ->
+            ( { model | error = toString error }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -77,12 +88,11 @@ view model =
         ( Just participant, Just chatRoom ) ->
             div [ class "row" ]
                 [ h2 [] [ text chatRoom.title ]
-                , textarea [ class "col-md-12", rows 20, value model.chatHistory ] []
+                , textarea [ class "col-md-12", rows 20, style [ ( "width", "100%" ) ], value model.chatHistory ] []
                 , Html.form [ class "form-inline", onSubmit (SendMessage model.message) ]
                     [ input [ type_ "text", class "form-control", size 30, placeholder <| participant.name ++ ": Enter message", value model.message, onInput SetMessage ] []
                     , button [ class "btn btn-primary" ] [ text "Send" ]
                     ]
-                , span [] [ text <| toString model ]
                 ]
 
         _ ->
