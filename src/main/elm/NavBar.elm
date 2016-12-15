@@ -44,3 +44,8 @@ viewNavBar model =
             , text "     "
             ]
         ]
+
+
+viewMain : List (Html msg) -> Html msg
+viewMain elements =
+    div [ class "container" ] elements

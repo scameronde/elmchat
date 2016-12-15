@@ -83,7 +83,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model
-        , div [ class "container" ]
+        , viewMain
             [ div [ class "view-area" ] [ viewMainArea model ]
             , div [ class "debug" ] [ text <| toString model ]
             ]
