@@ -9,6 +9,10 @@ import RoomList
 import Tuple exposing (mapFirst, mapSecond)
 
 
+type alias Flags =
+    { debug : Bool }
+
+
 type Msg
     = EnterParticipantNameMsg EnterParticipantName.Msg
     | RoomListMsg RoomList.Msg
@@ -23,6 +27,7 @@ type alias Model =
     { programState : ProgramState
     , enterParticipantName : EnterParticipantName.Model
     , roomList : RoomList.Model
+    , debug : Bool
     }
 
 
@@ -36,8 +41,8 @@ setEnterParticipantName model =
     (\value -> { model | enterParticipantName = value })
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     let
         ( enterParticipantNameModel, enterParticipantNameCmd ) =
             EnterParticipantName.init
@@ -48,6 +53,7 @@ init =
         ( { programState = EnterParticipantName
           , enterParticipantName = enterParticipantNameModel
           , roomList = roomListModel
+          , debug = flags.debug
           }
         , Cmd.batch
             [ Cmd.map EnterParticipantNameMsg enterParticipantNameCmd
@@ -85,7 +91,10 @@ view model =
         [ viewNavBar model
         , viewMain
             [ div [ class "view-area" ] [ viewMainArea model ]
-            , div [ class "debug" ] [ text <| toString model ]
+            , if model.debug then
+                div [ class "debug" ] [ text <| toString model ]
+              else
+                div [] []
             ]
         ]
 
@@ -99,9 +108,9 @@ subscriptions model =
 -- MAIN
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , update = update
         , view = view

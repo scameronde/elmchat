@@ -5,6 +5,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
 
+type alias Flags =
+    { debug : Bool }
+
+
 type Msg
     = None
 
@@ -13,8 +17,8 @@ type alias Model =
     {}
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     ( {}, Cmd.batch [ Cmd.none ] )
 
 
@@ -37,7 +41,7 @@ subscriptions model =
 -- MAIN
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
     Html.program
         { init = init
