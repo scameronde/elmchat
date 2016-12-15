@@ -1,4 +1,4 @@
-module ModuleVorlage exposing (Msg(Exit), Model, init, update, view)
+module ModuleVorlage exposing (Msg(Exit), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -26,3 +26,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [] []
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
