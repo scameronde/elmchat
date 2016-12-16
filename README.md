@@ -16,6 +16,8 @@ Especially with Elm I wanted to explore a few aspects:
 
 ## Detailed information
 
+The following information is available in German only. Sorry for that.
+
 - [BaseSetup](BaseSetup.md)
 - [JSON](Json.md)
 - [REST](Rest.md)
