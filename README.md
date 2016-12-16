@@ -17,3 +17,4 @@ Especially with Elm I wanted to explore a few aspects:
 ## Detailed information
 
 - [BaseSetup](BaseSetup.md)
+- [JSON](Json.md)

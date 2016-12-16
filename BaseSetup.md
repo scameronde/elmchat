@@ -6,7 +6,19 @@ Für ein neues Projekt benötigen wir drei Dateien:
 - `index.html`
 - und irgend eine Elm-Datei
 
-Als Elm-Datei nehmen wir mal Main.elm. Außerdem nutzen wir Bootstrap und jQuery. Beides muss erreichbar sein. Ich kopiere beides gerne direkt in das Projektverzeichnis.
+Die Datei `elm-package.json` beschreibt das Projekt und seine Abhängigkeite.
+Es ist vergleichbar mit einer Maven POM Datei.
+
+Die `index.html` ist der Einstieg in den Browser. Der Elm Compiler erzeugt selbst
+keine Html Dateien, sondern eine große JavaScript Datei, die den kompletten Code
+inklusive aller genutzten Bibliotheken enthält. Diese JavaScript Datei muss
+geladen und das Elm Programm gestartet werden. Außerdem wird man in jedem
+halbwegs ernst zu nehmenden Client Programm Bootstrap und jQuery einsetzen.
+Die werden in der `index.html` ebenfalls geladen. Woher Bootstrap und jQuery
+bezogen werden ist abhängig vom Projekt. Für kleinere Sachen kopiere ich beide
+einfach in den Projektordner.
+
+Unsere Elm Datei nennen wir mal `Main.elm`. Sie wird unser Hauptprogramm sein.
 
 ## `elm-package.json`
 
@@ -35,7 +47,8 @@ Hier eine Beispieldatei:
 
 ## `index.html`
 
-Das sollte für eine erste HTML Datei reichen.
+Die Datei lädt Bootstrap, jQuery, eine CSS Datei für das Programm und unseren
+Elm Code. Außerdem startet sie unser Elm Programm.
 
 ```HTML
 <!DOCTYPE html>
@@ -59,6 +72,8 @@ Das sollte für eine erste HTML Datei reichen.
 ```
 
 ## `Main.elm`
+
+Dies ist das Grundgerüst für ein Hauptprogramm.
 
 ```elm
 module Main exposing (..)
@@ -106,7 +121,7 @@ subscriptions model =
 
 main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , update = update
         , view = view
