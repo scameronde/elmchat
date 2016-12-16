@@ -19,16 +19,10 @@ public class InMemoryRepository implements Repository {
   public InMemoryRepository() {
     ChatRoom chatRoom1 = new ChatRoom(1, "Room 1");
     ChatRoom chatRoom2 = new ChatRoom(2, "Room 2");
-    ChatRoom chatRoom3 = new ChatRoom(3, "Room 3");
-    ChatRoom chatRoom4 = new ChatRoom(4, "Room 4");
     chatRooms.add(chatRoom1);
     chatRooms.add(chatRoom2);
-    chatRooms.add(chatRoom3);
-    chatRooms.add(chatRoom4);
     logs.put(chatRoom1, "");
     logs.put(chatRoom2, "");
-    logs.put(chatRoom3, "");
-    logs.put(chatRoom4, "");
   }
 
   @Override
