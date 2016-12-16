@@ -78,7 +78,7 @@ update msg model =
             ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = 0, title = model.newChatRoomTitle } PostChatRoomResult )
 
         PostChatRoomResult (Ok id) ->
-            ( model, RestClient.getChatRooms ChatRooms )
+            ( model, RestClient.getChatRooms GetChatRooms )
 
         PostChatRoomResult (Err error) ->
             ( model, Cmd.none )
@@ -90,7 +90,7 @@ update msg model =
             ( model, Cmd.none )
 
         TickTock time ->
-            ( model, RestClient.getChatRooms ChatRooms )
+            ( model, RestClient.getChatRooms GetChatRooms )
 
         ChatWindowMsg subMsg ->
             (ChatWindow.update subMsg model.chatWindow) |> mapFirst (setChatWindow model) |> mapSecond (Cmd.map ChatWindowMsg)
