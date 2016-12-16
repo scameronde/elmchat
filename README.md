@@ -21,3 +21,4 @@ Especially with Elm I wanted to explore a few aspects:
 - [REST](Rest.md)
 - [WebSocket](WebSocket.md)
 - [Polling](Polling.md)
+- [Modularisierung](Modularization.md)
