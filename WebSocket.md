@@ -20,6 +20,12 @@ zum eigentlichen Empfangen der Daten genutzt wird.
 Es ist guter Stil, den WebSocket nur so lange offen zu halten, wie er auch
 benötigt wird.
 
+Solange der WebSocket offen gehalten wird, sorgt Elm dafür, dass dem auch so ist.
+Sollte die Verbindung irgendwie abreißen, baut Elm sie neu auf. Notfalls nutzt
+Elm dafür eine mehrstufige Backup Strategie für die Verbindungsart. Sollten
+Nachrichten verschickt werden während die Verbindung gerade unten ist, queued
+Elm die Nachrichten und verschickt diese nach dem Wiederaufbau.
+
 ```elm
 type Message
   = ReceiveWebSocketMessage String
