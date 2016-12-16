@@ -20,3 +20,4 @@ Especially with Elm I wanted to explore a few aspects:
 - [JSON](Json.md)
 - [REST](Rest.md)
 - [WebSocket](WebSocket.md)
+- [Polling](Polling.md)
