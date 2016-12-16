@@ -33,6 +33,13 @@ getAdresse id =
             Http.get ("http://localhost:4567/adresse/" ++ toString id) Json.decodeAdresse
     in
         Http.send GetAdresseResult getAdresseRequest
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update message model =
+  case message of
+    SendGetAdresse id ->
+      (model, getAdresse id)
+
 ```
 
 ### POST
@@ -46,6 +53,12 @@ postAdresse adresse =
 in
     Http.send PostAdresseResult postAdresseRequest
 
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update message model =
+  case message of
+    SendPostAdresse adresse ->
+      (model, postAdresse id)
 ```
 
 ## Das Ergebnis eines REST Calls empfangen
