@@ -6,7 +6,7 @@ import Utils
 import NavBar exposing (..)
 import EnterParticipantName
 import RoomList
-import Tuple exposing (mapFirst, mapSecond)
+import Tuple exposing (mapFirst, mapSecond, first, second)
 
 
 type alias Flags =
@@ -44,20 +44,20 @@ setEnterParticipantName model =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        ( enterParticipantNameModel, enterParticipantNameCmd ) =
-            EnterParticipantName.init
+        enterParticipantName =
+            EnterParticipantName.init |> mapSecond (Cmd.map EnterParticipantNameMsg)
 
-        ( roomListModel, roomListCmd ) =
-            RoomList.init
+        roomList =
+            RoomList.init |> mapSecond (Cmd.map RoomListMsg)
     in
         ( { programState = EnterParticipantName
-          , enterParticipantName = enterParticipantNameModel
-          , roomList = roomListModel
+          , enterParticipantName = first enterParticipantName
+          , roomList = first roomList
           , debug = flags.debug
           }
         , Cmd.batch
-            [ Cmd.map EnterParticipantNameMsg enterParticipantNameCmd
-            , Cmd.map RoomListMsg roomListCmd
+            [ second enterParticipantName
+            , second roomList
             ]
         )
 

@@ -8,7 +8,7 @@ import BusinessTypes
 import RestClient
 import ChatWindow
 import Utils
-import Tuple exposing (mapFirst, mapSecond)
+import Tuple exposing (..)
 import Time
 
 
@@ -45,16 +45,16 @@ getChatRoom model id =
 init : ( Model, Cmd Msg )
 init =
     let
-        ( chatWindowModel, chatWindowCmd ) =
-            ChatWindow.init
+        chatWindow =
+            ChatWindow.init |> mapSecond (Cmd.map ChatWindowMsg)
     in
         ( { participant = { id = 0, name = "" }
           , chatRooms = []
-          , chatWindow = chatWindowModel
+          , chatWindow = first chatWindow
           , clicked = 0
           , newChatRoomTitle = ""
           }
-        , Cmd.batch [ Cmd.map ChatWindowMsg chatWindowCmd ]
+        , Cmd.batch [ second chatWindow ]
         )
 
 
