@@ -43,7 +43,7 @@ subscriptions model =
 
 main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , update = update
         , view = view
