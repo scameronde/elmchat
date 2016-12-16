@@ -18,3 +18,4 @@ Especially with Elm I wanted to explore a few aspects:
 
 - [BaseSetup](BaseSetup.md)
 - [JSON](Json.md)
+- [REST](Rest.md)
