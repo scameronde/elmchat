@@ -1,7 +1,7 @@
 # Elm und REST
 
 REST Calls können in Elm nicht direkt gemacht werden, da dies Seiteneffekte
-währen. Deswegen müssen REST Calls als Commands (`Cmd msg`) ausgedrückt und
+wären. Deswegen müssen REST Calls als Commands (`Cmd msg`) ausgedrückt und
 per `init` oder `update` an die Elm Runtime übergeben werden.
 
 Die Antwort eines REST Calls kommt dann als Message zurück. Die Message muss, um
