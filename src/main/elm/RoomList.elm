@@ -14,30 +14,25 @@ import Time
 
 type Msg
     = Open BusinessTypes.Participant
-    | Clicked Int
+    | SelectChatRoom Int
     | ChatWindowMsg ChatWindow.Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error Int)
-    | GetChatRooms (Result Http.Error (List BusinessTypes.ChatRoom))
+    | GetChatRoomsResult (Result Http.Error (List BusinessTypes.ChatRoom))
     | TickTock Time.Time
 
 
 type alias Model =
-    { participant : BusinessTypes.Participant
+    { participant : Maybe BusinessTypes.Participant
     , chatRooms : List BusinessTypes.ChatRoom
     , chatWindow : ChatWindow.Model
-    , clicked : Int
+    , selectedChatRoom : Maybe BusinessTypes.Id
     , newChatRoomTitle : String
     }
 
 
-setChatWindow : Model -> ChatWindow.Model -> Model
-setChatWindow model =
-    (\chatWindow -> { model | chatWindow = chatWindow })
-
-
-getChatRoom : Model -> Int -> Maybe BusinessTypes.ChatRoom
+getChatRoom : Model -> BusinessTypes.Id -> Maybe BusinessTypes.ChatRoom
 getChatRoom model id =
     List.head <| List.filter (\chatRoom -> chatRoom.id == id) model.chatRooms
 
@@ -48,13 +43,13 @@ init =
         chatWindow =
             ChatWindow.init
     in
-        ( { participant = { id = 0, name = "" }
+        ( { participant = Nothing
           , chatRooms = []
           , chatWindow = first chatWindow
-          , clicked = 0
+          , selectedChatRoom = Nothing
           , newChatRoomTitle = ""
           }
-        , Cmd.batch [ Cmd.map ChatWindowMsg (second chatWindow) ]
+        , Cmd.map ChatWindowMsg (second chatWindow)
         )
 
 
@@ -62,14 +57,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Open participant ->
-            ( { model | participant = participant }, RestClient.getChatRooms GetChatRooms )
+            ( { model | participant = Just participant }, RestClient.getChatRooms GetChatRoomsResult )
 
-        Clicked id ->
+        SelectChatRoom id ->
             let
                 newModel =
-                    { model | clicked = id }
+                    { model | selectedChatRoom = Just id }
             in
-                ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (Just newModel.participant) )
+                ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (newModel.participant) )
 
         ChangeTitle title ->
             ( { model | newChatRoomTitle = title }, Cmd.none )
@@ -78,22 +73,22 @@ update msg model =
             ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = 0, title = model.newChatRoomTitle } PostChatRoomResult )
 
         PostChatRoomResult (Ok id) ->
-            ( model, RestClient.getChatRooms GetChatRooms )
+            ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         PostChatRoomResult (Err error) ->
             ( model, Cmd.none )
 
-        GetChatRooms (Ok chatRooms) ->
+        GetChatRoomsResult (Ok chatRooms) ->
             ( { model | chatRooms = chatRooms }, Cmd.none )
 
-        GetChatRooms (Err e) ->
+        GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
 
         TickTock time ->
-            ( model, RestClient.getChatRooms GetChatRooms )
+            ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         ChatWindowMsg subMsg ->
-            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (setChatWindow model) |> mapSecond (Cmd.map ChatWindowMsg)
+            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (\a -> { model | chatWindow = a }) |> mapSecond (Cmd.map ChatWindowMsg)
 
 
 viewChatRooms : Model -> Html Msg
@@ -103,7 +98,7 @@ viewChatRooms model =
             [ tr []
                 [ th [] [ text "Chat Room" ] ]
             ]
-        , tbody [] (List.map (\chatRoom -> tr [] [ td [ onClick (Clicked chatRoom.id) ] [ text chatRoom.title ] ]) model.chatRooms)
+        , tbody [] (List.map (\chatRoom -> tr [] [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]) model.chatRooms)
         ]
 
 

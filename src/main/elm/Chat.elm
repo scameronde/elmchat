@@ -6,7 +6,7 @@ import Utils
 import NavBar exposing (..)
 import EnterParticipantName
 import RoomList
-import Tuple exposing (mapFirst, mapSecond, first, second)
+import Tuple exposing (..)
 
 
 type alias Flags =
@@ -29,16 +29,6 @@ type alias Model =
     , roomList : RoomList.Model
     , debug : Bool
     }
-
-
-setRoomList : Model -> RoomList.Model -> Model
-setRoomList model =
-    (\value -> { model | roomList = value })
-
-
-setEnterParticipantName : Model -> EnterParticipantName.Model -> Model
-setEnterParticipantName model =
-    (\value -> { model | enterParticipantName = value })
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -69,10 +59,10 @@ update msg model =
             ( { model | programState = RoomList }, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
 
         EnterParticipantNameMsg subMsg ->
-            (EnterParticipantName.update subMsg model.enterParticipantName) |> mapFirst (setEnterParticipantName model) |> mapSecond (Cmd.map EnterParticipantNameMsg)
+            (EnterParticipantName.update subMsg model.enterParticipantName) |> mapFirst (\a -> { model | enterParticipantName = a }) |> mapSecond (Cmd.map EnterParticipantNameMsg)
 
         RoomListMsg subMsg ->
-            (RoomList.update subMsg model.roomList) |> mapFirst (setRoomList model) |> mapSecond (Cmd.map RoomListMsg)
+            (RoomList.update subMsg model.roomList) |> mapFirst (\a -> { model | roomList = a }) |> mapSecond (Cmd.map RoomListMsg)
 
 
 viewMainArea : Model -> Html Msg

@@ -12,7 +12,7 @@ import Utils
 type Msg
     = Exit BusinessTypes.Participant
     | PostParticipant BusinessTypes.Participant
-    | NewId (Result Http.Error Int)
+    | PostParticipantResult (Result Http.Error Int)
     | ChangeName String
 
 
@@ -35,16 +35,16 @@ update msg model =
             ( { model | name = name }, Cmd.none )
 
         PostParticipant participant ->
-            ( model, RestClient.postParticipant participant NewId )
+            ( model, RestClient.postParticipant participant PostParticipantResult )
 
-        NewId (Ok id) ->
+        PostParticipantResult (Ok id) ->
             let
                 newModel =
                     { model | id = id }
             in
                 ( newModel, Utils.toCmd (Exit newModel) )
 
-        NewId (Err error) ->
+        PostParticipantResult (Err error) ->
             ( model, Cmd.none )
 
 
