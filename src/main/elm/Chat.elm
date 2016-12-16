@@ -45,10 +45,10 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         enterParticipantName =
-            EnterParticipantName.init |> mapSecond (Cmd.map EnterParticipantNameMsg)
+            EnterParticipantName.init
 
         roomList =
-            RoomList.init |> mapSecond (Cmd.map RoomListMsg)
+            RoomList.init
     in
         ( { programState = EnterParticipantName
           , enterParticipantName = first enterParticipantName
@@ -56,8 +56,8 @@ init flags =
           , debug = flags.debug
           }
         , Cmd.batch
-            [ second enterParticipantName
-            , second roomList
+            [ Cmd.map EnterParticipantNameMsg (second enterParticipantName)
+            , Cmd.map RoomListMsg (second roomList)
             ]
         )
 
@@ -101,7 +101,10 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.map RoomListMsg (RoomList.subscriptions model.roomList)
+    if (model.programState == RoomList) then
+        Sub.map RoomListMsg (RoomList.subscriptions model.roomList)
+    else
+        Sub.none
 
 
 

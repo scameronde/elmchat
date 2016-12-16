@@ -46,7 +46,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         chatWindow =
-            ChatWindow.init |> mapSecond (Cmd.map ChatWindowMsg)
+            ChatWindow.init
     in
         ( { participant = { id = 0, name = "" }
           , chatRooms = []
@@ -54,7 +54,7 @@ init =
           , clicked = 0
           , newChatRoomTitle = ""
           }
-        , Cmd.batch [ second chatWindow ]
+        , Cmd.batch [ Cmd.map ChatWindowMsg (second chatWindow) ]
         )
 
 
