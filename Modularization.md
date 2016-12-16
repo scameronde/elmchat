@@ -10,7 +10,7 @@ mehr aus.
 
 Teile die als Komponente extrahiert werden sollen, werden in einem
 eigenen Elm Modul untergebracht. Jede Komponente muss, damit sie in den
-Elm Lifecycle eingebunden werden kann folgende Elemente bereit stellen:
+Elm Lifecycle eingebunden werden kann, folgende Elemente bereit stellen:
 
 - Typen für Model und Message
 - die Funktionen `init`, `update`, `view` und `subscriptions`
@@ -107,13 +107,15 @@ Commands müssen in Commands des Parents verpackt werden.
 init : Flags -> (Model, Cmd Msg)
 init flags =
   let
-    initKomponente1 = Komponente1.init |> mapSecond (Cmd.map Komponente1Msg)
-    initKomponente2 = Komponente2.init |> mapSecond (Cmd.map Komponente2Msg)
+    initKomponente1 = Komponente1.init
+    initKomponente2 = Komponente2.init
   in
     ( { komponente1Model = first initKomponente1
       , komponente2Model = first initKomponente2
       }
-    , Cmd.batch [second initKomponente1, second initKomponente2]
+    , Cmd.batch [ Cmd.map Komponente1Msg (second initKomponente1)
+                , Cmd.map Komponente2Msg (second initKomponente2)
+                ]
     )
 ```
 
