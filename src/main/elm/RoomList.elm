@@ -14,12 +14,12 @@ import Time
 
 type Msg
     = Open BusinessTypes.Participant
-    | ChatRooms (Result Http.Error (List BusinessTypes.ChatRoom))
     | Clicked Int
     | ChatWindowMsg ChatWindow.Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error Int)
+    | GetChatRooms (Result Http.Error (List BusinessTypes.ChatRoom))
     | TickTock Time.Time
 
 
@@ -62,13 +62,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Open participant ->
-            ( { model | participant = participant }, RestClient.getChatRooms ChatRooms )
-
-        ChatRooms (Ok chatRooms) ->
-            ( { model | chatRooms = chatRooms }, Cmd.none )
-
-        ChatRooms (Err e) ->
-            ( model, Cmd.none )
+            ( { model | participant = participant }, RestClient.getChatRooms GetChatRooms )
 
         Clicked id ->
             let
@@ -76,9 +70,6 @@ update msg model =
                     { model | clicked = id }
             in
                 ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (Just newModel.participant) )
-
-        ChatWindowMsg subMsg ->
-            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (setChatWindow model) |> mapSecond (Cmd.map ChatWindowMsg)
 
         ChangeTitle title ->
             ( { model | newChatRoomTitle = title }, Cmd.none )
@@ -92,8 +83,17 @@ update msg model =
         PostChatRoomResult (Err error) ->
             ( model, Cmd.none )
 
+        GetChatRooms (Ok chatRooms) ->
+            ( { model | chatRooms = chatRooms }, Cmd.none )
+
+        GetChatRooms (Err e) ->
+            ( model, Cmd.none )
+
         TickTock time ->
             ( model, RestClient.getChatRooms ChatRooms )
+
+        ChatWindowMsg subMsg ->
+            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (setChatWindow model) |> mapSecond (Cmd.map ChatWindowMsg)
 
 
 viewChatRooms : Model -> Html Msg
