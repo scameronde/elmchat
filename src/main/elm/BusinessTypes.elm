@@ -44,6 +44,11 @@ decodeChatRooms =
     Json.Decode.list decodeChatRoom
 
 
+encodeChatRooms : List ChatRoom -> Json.Encode.Value
+encodeChatRooms list =
+    Json.Encode.list <| List.map encodeChatRoom list
+
+
 decodeChatRoom : Json.Decode.Decoder ChatRoom
 decodeChatRoom =
     Json.Decode.Pipeline.decode ChatRoom
