@@ -91,14 +91,22 @@ update msg model =
             (ChatWindow.update subMsg model.chatWindow) |> mapFirst (\a -> { model | chatWindow = a }) |> mapSecond (Cmd.map ChatWindowMsg)
 
 
+rowClass : BusinessTypes.ChatRoom -> Model -> String
+rowClass chatRoom model =
+    if (model.selectedChatRoom == Just (chatRoom.id)) then
+        "info"
+    else
+        ""
+
+
 viewChatRooms : Model -> Html Msg
 viewChatRooms model =
     table [ class "table table-striped table-hover" ]
         [ thead []
             [ tr []
-                [ th [] [ text "Chat Room" ] ]
+                [ th [] [ text "Available Chat Rooms" ] ]
             ]
-        , tbody [] (List.map (\chatRoom -> tr [] [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]) model.chatRooms)
+        , tbody [] (List.map (\chatRoom -> tr [ class (rowClass chatRoom model) ] [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]) model.chatRooms)
         ]
 
 
@@ -117,7 +125,8 @@ view : Model -> Html Msg
 view model =
     div [ class "row" ]
         [ div [ class "col-md-6" ]
-            [ viewChatRooms model
+            [ h2 [] [ text "Chat Room Selection" ]
+            , viewChatRooms model
             , viewNewChatRoom model
             ]
         , div [ class "col-md-6" ]
