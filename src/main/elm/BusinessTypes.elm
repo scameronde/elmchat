@@ -144,12 +144,3 @@ type alias Id =
 decodeId : Json.Decode.Decoder Int
 decodeId =
     Json.Decode.int
-
-
-
--- Utils
-
-
-jsonAsString : Json.Encode.Value -> String
-jsonAsString json =
-    Json.Encode.encode 0 json

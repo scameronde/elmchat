@@ -106,7 +106,14 @@ viewChatRooms model =
             [ tr []
                 [ th [] [ text "Available Chat Rooms" ] ]
             ]
-        , tbody [] (List.map (\chatRoom -> tr [ class (rowClass chatRoom model) ] [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]) model.chatRooms)
+        , tbody []
+            (List.map
+                (\chatRoom ->
+                    tr [ class (rowClass chatRoom model) ]
+                        [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]
+                )
+                model.chatRooms
+            )
         ]
 
 
