@@ -7,11 +7,11 @@ import de.scameronde.chat.businesstypes.MessageLog;
 import de.scameronde.chat.businesstypes.Participant;
 
 public interface Repository {
-  Integer addParticipant(Participant participant);
+  String addParticipant(Participant participant);
 
   List<ChatRoom> getChatRooms();
 
-  Integer addChatRoom(ChatRoom chatRoom);
+  String addChatRoom(ChatRoom chatRoom);
 
   void addMessage(ChatRoom chatRoom, String message, Participant participant);
 

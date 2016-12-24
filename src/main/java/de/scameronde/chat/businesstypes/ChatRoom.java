@@ -1,14 +1,14 @@
 package de.scameronde.chat.businesstypes;
 
 public class ChatRoom {
-  Integer id;
+  String id;
   String title;
 
   public ChatRoom() {
-    this.id = 0;
+    this.id = "";
   }
 
-  public ChatRoom(Integer id, String title) {
+  public ChatRoom(String id, String title) {
     this.id = id;
     this.title = title;
   }
@@ -21,11 +21,11 @@ public class ChatRoom {
     this.title = title;
   }
 
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 

@@ -1,23 +1,23 @@
 package de.scameronde.chat.businesstypes;
 
 public class Participant {
-  Integer id;
+  String id;
   String name;
 
   public Participant() {
-    this.id = 0;
+    this.id = "";
   }
 
-  public Participant(Integer id, String name) {
+  public Participant(String id, String name) {
     this.id = id;
     this.name = name;
   }
 
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 

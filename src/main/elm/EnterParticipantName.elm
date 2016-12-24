@@ -6,23 +6,32 @@ import Html.Events exposing (..)
 import Http
 import BusinessTypes
 import RestClient
-import Utils
+import Utils exposing (..)
 
 
 type Msg
     = Exit BusinessTypes.Participant
     | PostParticipant BusinessTypes.Participant
-    | PostParticipantResult (Result Http.Error Int)
+    | PostParticipantResult (Result Http.Error BusinessTypes.Id)
     | ChangeName String
 
 
 type alias Model =
-    BusinessTypes.Participant
+    { participant : BusinessTypes.Participant
+    , error : String
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { id = 0, name = "" }, Cmd.none )
+    ( { participant =
+            { id = ""
+            , name = ""
+            }
+      , error = ""
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -32,25 +41,38 @@ update msg model =
             ( model, Cmd.none )
 
         ChangeName name ->
-            ( { model | name = name }, Cmd.none )
+            let
+                oldParticipant =
+                    model.participant
+
+                newParticipant =
+                    { oldParticipant | name = name }
+            in
+                ( { model | participant = newParticipant }, Cmd.none )
 
         PostParticipant participant ->
-            ( model, RestClient.postParticipant participant PostParticipantResult )
+            ( model, RestClient.postParticipant model.participant PostParticipantResult )
 
         PostParticipantResult (Ok id) ->
             let
+                oldParticipant =
+                    model.participant
+
+                newParticipant =
+                    { oldParticipant | id = id }
+
                 newModel =
-                    { model | id = id }
+                    { model | participant = newParticipant }
             in
-                ( newModel, Utils.toCmd (Exit newModel) )
+                ( newModel, toCmd (Exit newParticipant) )
 
         PostParticipantResult (Err error) ->
-            ( model, Cmd.none )
+            ( { model | error = toString error }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    Html.form [ onSubmit (PostParticipant model) ]
+    Html.form [ onSubmit (PostParticipant model.participant) ]
         [ div [ class "form-group" ]
             [ label [ for "nameInput" ] [ text "Dein Name" ]
             , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []

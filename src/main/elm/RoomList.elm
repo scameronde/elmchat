@@ -14,11 +14,11 @@ import Time
 
 type Msg
     = Open BusinessTypes.Participant
-    | SelectChatRoom Int
+    | SelectChatRoom String
     | ChatWindowMsg ChatWindow.Msg
     | ChangeTitle String
     | PostChatRoom Model
-    | PostChatRoomResult (Result Http.Error Int)
+    | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List BusinessTypes.ChatRoom))
     | TickTock Time.Time
 
@@ -70,7 +70,7 @@ update msg model =
             ( { model | newChatRoomTitle = title }, Cmd.none )
 
         PostChatRoom model ->
-            ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = 0, title = model.newChatRoomTitle } PostChatRoomResult )
+            ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult )
 
         PostChatRoomResult (Ok id) ->
             ( model, RestClient.getChatRooms GetChatRoomsResult )

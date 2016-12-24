@@ -38,7 +38,7 @@ public class Server {
 
     // get chat history for a chat room
     get("/chatRoom/:chatRoomId", ((request, response) -> {
-      Integer id = getIntParameter(request, ":chatRoomId");
+      String id = getParameter(request, ":chatRoomId");
       Optional<ChatRoom> chatRoom = findChatRoom(id);
       Optional<MessageLog> messageLog = chatRoom.map(cr -> repository.getMessageLog(cr));
       Either<Exception, Optional<String>> jsonMessageLog = dataToJson(messageLog);
@@ -49,8 +49,8 @@ public class Server {
     post("/participant", ((request, response) -> {
       Either<Exception, Participant> participant = jsonToData(request.body(), Participant.class);
       if (participant.isRight()) {
-        Integer id = repository.addParticipant(participant.get());
-        Either<Exception, String> jsonId = participant.map(p -> id.toString());
+        String id = repository.addParticipant(participant.get());
+        Either<Exception, String> jsonId = participant.map(p -> '"'+id+'"');
         return createResponse(response, jsonId);
       }
       else {
@@ -62,8 +62,8 @@ public class Server {
     post("/chatRoom", ((request, response) -> {
       Either<Exception, ChatRoom> chatRoom = jsonToData(request.body(), ChatRoom.class);
       if (chatRoom.isRight()) {
-        Integer id = repository.addChatRoom(chatRoom.get());
-        Either<Exception, String> jsonId = chatRoom.map(c -> id.toString());
+        String id = repository.addChatRoom(chatRoom.get());
+        Either<Exception, String> jsonId = chatRoom.map(c -> '"'+id+'"');
         return createResponse(response, jsonId);
       }
       else {
@@ -72,10 +72,10 @@ public class Server {
     }));
   }
 
-  private static Optional<ChatRoom> findChatRoom(Integer id) {
+  private static Optional<ChatRoom> findChatRoom(String id) {
     return repository.getChatRooms()
                      .stream()
-                     .filter(room -> room.getId() == id)
+                     .filter(room -> room.getId().equals(id))
                      .findFirst();
   }
 
@@ -140,9 +140,8 @@ public class Server {
   }
 
 
-  static Integer getIntParameter(Request request, String parameter) {
-    String param = request.params(":chatRoomId");
-    return Integer.parseInt(param);
+  static String getParameter(Request request, String parameter) {
+    return request.params(parameter);
   }
 
 }

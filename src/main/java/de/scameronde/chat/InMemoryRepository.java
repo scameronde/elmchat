@@ -10,15 +10,15 @@ import de.scameronde.chat.businesstypes.MessageLog;
 import de.scameronde.chat.businesstypes.Participant;
 
 public class InMemoryRepository implements Repository {
-  static int idcounter = 1;
+  static Integer idcounter = 100;
 
   List<Participant> participants = new ArrayList<>();
   List<ChatRoom> chatRooms = new ArrayList<>();
   Map<ChatRoom, String> logs = new HashMap<>();
 
   public InMemoryRepository() {
-    ChatRoom chatRoom1 = new ChatRoom(1, "Room 1");
-    ChatRoom chatRoom2 = new ChatRoom(2, "Room 2");
+    ChatRoom chatRoom1 = new ChatRoom("1", "Room 1");
+    ChatRoom chatRoom2 = new ChatRoom("2", "Room 2");
     chatRooms.add(chatRoom1);
     chatRooms.add(chatRoom2);
     logs.put(chatRoom1, "");
@@ -26,8 +26,8 @@ public class InMemoryRepository implements Repository {
   }
 
   @Override
-  public Integer addParticipant(Participant participant) {
-    int id = idcounter++;
+  public String addParticipant(Participant participant) {
+    String id = String.valueOf(idcounter++);
     participant.setId(id);
     participants.add(participant);
     return id;
@@ -39,8 +39,8 @@ public class InMemoryRepository implements Repository {
   }
 
   @Override
-  public Integer addChatRoom(ChatRoom chatRoom) {
-    int id = idcounter++;
+  public String addChatRoom(ChatRoom chatRoom) {
+    String id = String.valueOf(idcounter++);
     chatRoom.setId(id);
     chatRooms.add(chatRoom);
     logs.put(chatRoom, "");

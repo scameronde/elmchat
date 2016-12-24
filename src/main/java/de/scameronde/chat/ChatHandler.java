@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import de.scameronde.chat.businesstypes.ChatCommand;
 import de.scameronde.chat.businesstypes.ChatRegistration;
 import de.scameronde.chat.businesstypes.ChatRoom;
 import de.scameronde.chat.businesstypes.Message;
@@ -37,23 +38,18 @@ public class ChatHandler {
 
   @OnWebSocketMessage
   public void message(Session session, String message) throws IOException {
-    if (isMessageOfType(message, "registration")) {
-      String messageBody = getMessageBody(message);
-      Either<Exception, ChatRegistration> chatRegistration = jsonToData(messageBody, ChatRegistration.class);
-      if (chatRegistration.isRight()) {
-        sessions.get(session).participant = chatRegistration.get().getParticipant();
-        sessions.get(session).chatRoom = chatRegistration.get().getChatRoom();
+    Either<Exception, ChatCommand> decodedJson = jsonToData(message, ChatCommand.class);
+    if (decodedJson.isRight()) {
+      ChatCommand chatCommand = decodedJson.get();
+      if (chatCommand.getCommand().equals("register")) {
+        sessions.get(session).participant = chatCommand.getRegistration().getParticipant();
+        sessions.get(session).chatRoom = chatCommand.getRegistration().getChatRoom();
       }
-    }
-    else if (isMessageOfType(message, "message")) {
-      String messageBody = getMessageBody(message);
-      Either<Exception, Message> chatMessage = jsonToData(messageBody, Message.class);
-
-      if (chatMessage.isRight()) {
+      if (chatCommand.getCommand().equals("message")) {
         ChatRoom chatRoom = sessions.get(session).chatRoom;
         Participant participant = sessions.get(session).participant;
 
-        String newMessage = participant.getName() + " > " + chatMessage.get().getMessage() + "\n";
+        String newMessage = participant.getName() + " > " + chatCommand.getMessage().getMessage() + "\n";
         repository.addMessage(chatRoom, newMessage, participant);
         List<Session> recipients = sessions.entrySet()
                                            .stream()
@@ -68,14 +64,6 @@ public class ChatHandler {
     }
   }
 
-
-  private boolean isMessageOfType(String message, String messageType) {
-    return message.startsWith(messageType + ":");
-  }
-
-  private String getMessageBody(String message) {
-    return message.substring(message.indexOf(":") + 1);
-  }
 
   private class SessionInfo {
     public Participant participant;

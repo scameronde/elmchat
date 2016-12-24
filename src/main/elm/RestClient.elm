@@ -2,22 +2,23 @@ module RestClient exposing (..)
 
 import Http
 import BusinessTypes
+import Json
 
 
-postParticipant : BusinessTypes.Participant -> (Result Http.Error Int -> msg) -> Cmd msg
+postParticipant : BusinessTypes.Participant -> (Result Http.Error BusinessTypes.Id -> msg) -> Cmd msg
 postParticipant participant msg =
     let
         postParticipantRequest =
-            Http.post "http://localhost:4567/participant" (Http.jsonBody (BusinessTypes.encodeParticipant participant)) BusinessTypes.decodeId
+            Http.post "http://localhost:4567/participant" (Http.jsonBody (Json.encodeParticipant participant)) Json.decodeId
     in
         Http.send msg postParticipantRequest
 
 
-postChatRoom : BusinessTypes.ChatRoom -> (Result Http.Error Int -> msg) -> Cmd msg
+postChatRoom : BusinessTypes.ChatRoom -> (Result Http.Error BusinessTypes.Id -> msg) -> Cmd msg
 postChatRoom chatRoom msg =
     let
         postChatRoomRequest =
-            Http.post "http://localhost:4567/chatRoom" (Http.jsonBody (BusinessTypes.encodeChatRoom chatRoom)) BusinessTypes.decodeId
+            Http.post "http://localhost:4567/chatRoom" (Http.jsonBody (Json.encodeChatRoom chatRoom)) Json.decodeId
     in
         Http.send msg postChatRoomRequest
 
@@ -26,15 +27,15 @@ getChatRooms : (Result Http.Error (List BusinessTypes.ChatRoom) -> msg) -> Cmd m
 getChatRooms msg =
     let
         getChatRoomsRequest =
-            Http.get "http://localhost:4567/chatRoom" BusinessTypes.decodeChatRooms
+            Http.get "http://localhost:4567/chatRoom" Json.decodeChatRooms
     in
         Http.send msg getChatRoomsRequest
 
 
-getChatRoom : Int -> (Result Http.Error BusinessTypes.MessageLog -> msg) -> Cmd msg
+getChatRoom : String -> (Result Http.Error BusinessTypes.MessageLog -> msg) -> Cmd msg
 getChatRoom id msg =
     let
         getChatRoomRequest =
-            Http.get ("http://localhost:4567/chatRoom/" ++ toString id) BusinessTypes.decodeMessageLog
+            Http.get ("http://localhost:4567/chatRoom/" ++ id) Json.decodeMessageLog
     in
         Http.send msg getChatRoomRequest
