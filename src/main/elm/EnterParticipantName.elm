@@ -74,7 +74,7 @@ view : Model -> Html Msg
 view model =
     Html.form [ onSubmit (PostParticipant model.participant) ]
         [ div [ class "form-group" ]
-            [ label [ for "nameInput" ] [ text "Dein Name" ]
+            [ label [ for "nameInput" ] [ text "Your name" ]
             , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []
             ]
         , button [ class "btn btn-primary" ] [ text "OK" ]
