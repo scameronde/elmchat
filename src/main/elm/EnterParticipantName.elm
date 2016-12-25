@@ -17,18 +17,18 @@ type Msg
 
 
 type alias Model =
-    { participant : BusinessTypes.Participant
-    , error : String
+    { error : String
+    , participant : BusinessTypes.Participant
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { participant =
+    ( { error = ""
+      , participant =
             { id = ""
             , name = ""
             }
-      , error = ""
       }
     , Cmd.none
     )
@@ -41,33 +41,20 @@ update msg model =
             ( model, Cmd.none )
 
         ChangeName name ->
-            let
-                oldParticipant =
-                    model.participant
-
-                newParticipant =
-                    { oldParticipant | name = name }
-            in
-                ( { model | participant = newParticipant }, Cmd.none )
+            ( { model | participant = BusinessTypes.setName name model.participant }, Cmd.none )
 
         PostParticipant participant ->
             ( model, RestClient.postParticipant model.participant PostParticipantResult )
 
         PostParticipantResult (Ok id) ->
             let
-                oldParticipant =
-                    model.participant
-
                 newParticipant =
-                    { oldParticipant | id = id }
-
-                newModel =
-                    { model | participant = newParticipant }
+                    BusinessTypes.setId id model.participant
             in
-                ( newModel, toCmd (Exit newParticipant) )
+                ( { model | participant = newParticipant }, toCmd (Exit newParticipant) )
 
         PostParticipantResult (Err error) ->
-            ( { model | error = toString error }, Cmd.none )
+            ( { model | error = (toString error) }, Cmd.none )
 
 
 view : Model -> Html Msg
