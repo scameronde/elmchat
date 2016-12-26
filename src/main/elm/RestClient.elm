@@ -9,7 +9,7 @@ postParticipant : BusinessTypes.Participant -> (Result Http.Error BusinessTypes.
 postParticipant participant msg =
     let
         postParticipantRequest =
-            Http.post "http://localhost:4567/participant" (Http.jsonBody (Json.encodeParticipant participant)) Json.decodeId
+            Http.post "http://localhost:4567/participant" (participant |> Json.encodeParticipant |> Http.jsonBody) Json.decodeId
     in
         Http.send msg postParticipantRequest
 
@@ -18,7 +18,7 @@ postChatRoom : BusinessTypes.ChatRoom -> (Result Http.Error BusinessTypes.Id -> 
 postChatRoom chatRoom msg =
     let
         postChatRoomRequest =
-            Http.post "http://localhost:4567/chatRoom" (Http.jsonBody (Json.encodeChatRoom chatRoom)) Json.decodeId
+            Http.post "http://localhost:4567/chatRoom" (chatRoom |> Json.encodeChatRoom |> Http.jsonBody) Json.decodeId
     in
         Http.send msg postChatRoomRequest
 
