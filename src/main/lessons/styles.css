@@ -1,0 +1,15 @@
+body {
+    padding-top: 50px;
+}
+
+.view-area {
+    padding: 40px 15px;
+}
+
+.debug {
+    color: #797B74;
+    text-align: center;
+    border: 1px dashed #c5c5c5;
+    margin: 25px 0 0 0;
+    padding: 15px;
+}
