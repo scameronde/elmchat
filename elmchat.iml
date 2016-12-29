@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/elm" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/lessons" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/slides" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
