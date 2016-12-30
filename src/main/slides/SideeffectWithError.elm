@@ -1,17 +1,21 @@
-module Sideeffect exposing (..)
+module SideeffectWithError exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Http
 import Random
 
 
 type alias Model =
     Int
 
+type alias User = String
+
+type alias UserId = String
 
 type Msg
-    = NewRandomValue Int
-    | RequestNewRandomValue
+    = RestPost User
+    | RestPostResult (Result Http.Error UserId)
 
 
 init : ( Model, Cmd Msg )
@@ -22,18 +26,21 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RequestNewRandomValue ->
-            ( model, Random.generate NewRandomValue (Random.int 1 100) )
+        RestPost user ->
+            ( model, RestClient.postUser user )
 
-        NewRandomValue value ->
-            ( value, Cmd.none )
+        RestPostResult (Ok userId) ->
+            (model, Cmd.none)
+
+        RestPostResult (Err error) ->
+            (model, Cmd.none)
 
 
 view : Model -> Html Msg
 view model =
     div []
         [ span [] [ text (toString model) ]
-        , button [ onClick RequestNewRandomValue ] [ text "New random value" ]
+        , button [ onClick RestPost "" ] [ text "New random value" ]
         ]
 
 
