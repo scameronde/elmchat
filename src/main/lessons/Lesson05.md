@@ -100,42 +100,12 @@ type alias Model =
 ```
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    let
-        enterParticipantInit =
-            EnterParticipant.init
-    in
-        ( { enterParticipantModel = first enterParticipantInit }
-        , Cmd.map EnterParticipantMsg (second enterParticipantInit)
-        )
+    EnterParticipant.init
+        |> mapFirst (\a -> { enterParticipantModel = a })
+        |> mapSecond (Cmd.map EnterParticipantMsg)
 ```
 
 ### `update` Funktion aufrufen
-```
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        EnterParticipantMsg subMsg ->
-            let
-                enterParticipantUpdate =
-                    EnterParticipant.update subMsg model.enterParticipantModel
-            in
-                ( { enterParticipantModel = first enterParticipantUpdate }
-                , Cmd.map EnterParticipantMsg (second enterParticipantUpdate)
-                )
-```
-
-oder etwas einfacher:
-```
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        EnterParticipantMsg subMsg ->
-            (EnterParticipant.update subMsg model.enterParticipantModel)
-                |> mapFirst (\a -> { model | enterParticipantModel = a })
-                |> mapSecond (Cmd.map EnterParticipantMsg)
-```
-
-oder noch anders:
 ```
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =

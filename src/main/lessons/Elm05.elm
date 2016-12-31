@@ -25,13 +25,9 @@ setEnterParticipantModel enterParticipantModel model =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    let
-        enterParticipantInit =
-            EnterParticipant.init
-    in
-        ( { enterParticipantModel = first enterParticipantInit }
-        , Cmd.map EnterParticipantMsg (second enterParticipantInit)
-        )
+    EnterParticipant.init
+        |> mapFirst (\a -> { enterParticipantModel = a })
+        |> mapSecond (Cmd.map EnterParticipantMsg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
