@@ -10,8 +10,8 @@ type alias Model =
 
 
 type Msg
-    = NewRandomValue Int
-    | RequestNewRandomValue
+    = NewRndVal Int
+    | ReqRndVal
 
 
 init : ( Model, Cmd Msg )
@@ -22,10 +22,10 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RequestNewRandomValue ->
-            ( model, Random.generate NewRandomValue (Random.int 1 100) )
+        ReqRndVal ->
+            ( model, Random.generate NewRndVal (Random.int 1 100) )
 
-        NewRandomValue value ->
+        NewRndVal value ->
             ( value, Cmd.none )
 
 
@@ -33,7 +33,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ span [] [ text (toString model) ]
-        , button [ onClick RequestNewRandomValue ] [ text "New random value" ]
+        , button [ onClick ReqRndVal ] [ text "New random value" ]
         ]
 
 
