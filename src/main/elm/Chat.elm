@@ -59,10 +59,14 @@ update msg model =
             ( { model | programState = RoomList }, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
 
         EnterParticipantNameMsg subMsg ->
-            (EnterParticipantName.update subMsg model.enterParticipantName) |> mapFirst (\a -> { model | enterParticipantName = a }) |> mapSecond (Cmd.map EnterParticipantNameMsg)
+            (EnterParticipantName.update subMsg model.enterParticipantName)
+                |> mapFirst (\a -> { model | enterParticipantName = a })
+                |> mapSecond (Cmd.map EnterParticipantNameMsg)
 
         RoomListMsg subMsg ->
-            (RoomList.update subMsg model.roomList) |> mapFirst (\a -> { model | roomList = a }) |> mapSecond (Cmd.map RoomListMsg)
+            (RoomList.update subMsg model.roomList)
+                |> mapFirst (\a -> { model | roomList = a })
+                |> mapSecond (Cmd.map RoomListMsg)
 
 
 viewMainArea : Model -> Html Msg
