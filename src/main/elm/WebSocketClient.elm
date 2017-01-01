@@ -1,4 +1,4 @@
-module WSClient exposing (sendRegistration, sendMessage)
+module WebSocketClient exposing (sendRegistration, sendMessage)
 
 import Json.Encode
 import WebSocket
