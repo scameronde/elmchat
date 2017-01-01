@@ -1,4 +1,4 @@
-module EnterParticipantName exposing (Msg(Exit), Model, init, update, view)
+module Login exposing (Msg(Exit), Model, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

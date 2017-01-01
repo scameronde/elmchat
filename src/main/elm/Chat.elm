@@ -4,8 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Utils
 import NavBar exposing (..)
-import EnterParticipantName
-import RoomList
+import Login
+import ChatRooms
 import Tuple exposing (..)
 
 
@@ -14,19 +14,19 @@ type alias Flags =
 
 
 type Msg
-    = EnterParticipantNameMsg EnterParticipantName.Msg
-    | RoomListMsg RoomList.Msg
+    = LoginMsg Login.Msg
+    | ChatRoomsMsg ChatRooms.Msg
 
 
 type ProgramState
-    = EnterParticipantName
-    | RoomList
+    = LoginState
+    | ChatRoomsState
 
 
 type alias Model =
     { programState : ProgramState
-    , enterParticipantName : EnterParticipantName.Model
-    , roomList : RoomList.Model
+    , loginModel : Login.Model
+    , chatRoomsModel : ChatRooms.Model
     , debug : Bool
     }
 
@@ -34,20 +34,20 @@ type alias Model =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        enterParticipantName =
-            EnterParticipantName.init
+        loginInit =
+            Login.init
 
-        roomList =
-            RoomList.init
+        chatRoomsInit =
+            ChatRooms.init
     in
-        ( { programState = EnterParticipantName
-          , enterParticipantName = first enterParticipantName
-          , roomList = first roomList
+        ( { programState = LoginState
+          , loginModel = first loginInit
+          , chatRoomsModel = first chatRoomsInit
           , debug = flags.debug
           }
         , Cmd.batch
-            [ Cmd.map EnterParticipantNameMsg (second enterParticipantName)
-            , Cmd.map RoomListMsg (second roomList)
+            [ Cmd.map LoginMsg (second loginInit)
+            , Cmd.map ChatRoomsMsg (second chatRoomsInit)
             ]
         )
 
@@ -55,28 +55,30 @@ init flags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EnterParticipantNameMsg (EnterParticipantName.Exit participant) ->
-            ( { model | programState = RoomList }, Utils.toCmd <| RoomListMsg <| RoomList.Open participant )
+        LoginMsg (Login.Exit participant) ->
+            ( { model | programState = ChatRoomsState }
+            , Utils.toCmd <| ChatRoomsMsg <| ChatRooms.Open participant
+            )
 
-        EnterParticipantNameMsg subMsg ->
-            (EnterParticipantName.update subMsg model.enterParticipantName)
-                |> mapFirst (\a -> { model | enterParticipantName = a })
-                |> mapSecond (Cmd.map EnterParticipantNameMsg)
+        LoginMsg subMsg ->
+            (Login.update subMsg model.loginModel)
+                |> mapFirst (\a -> { model | loginModel = a })
+                |> mapSecond (Cmd.map LoginMsg)
 
-        RoomListMsg subMsg ->
-            (RoomList.update subMsg model.roomList)
-                |> mapFirst (\a -> { model | roomList = a })
-                |> mapSecond (Cmd.map RoomListMsg)
+        ChatRoomsMsg subMsg ->
+            (ChatRooms.update subMsg model.chatRoomsModel)
+                |> mapFirst (\a -> { model | chatRoomsModel = a })
+                |> mapSecond (Cmd.map ChatRoomsMsg)
 
 
 viewMainArea : Model -> Html Msg
 viewMainArea model =
     case model.programState of
-        EnterParticipantName ->
-            Html.map EnterParticipantNameMsg (EnterParticipantName.view model.enterParticipantName)
+        LoginState ->
+            Html.map LoginMsg (Login.view model.loginModel)
 
-        RoomList ->
-            Html.map RoomListMsg (RoomList.view model.roomList)
+        ChatRoomsState ->
+            Html.map ChatRoomsMsg (ChatRooms.view model.chatRoomsModel)
 
 
 view : Model -> Html Msg
@@ -95,8 +97,8 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if (model.programState == RoomList) then
-        Sub.map RoomListMsg (RoomList.subscriptions model.roomList)
+    if (model.programState == ChatRoomsState) then
+        Sub.map ChatRoomsMsg (ChatRooms.subscriptions model.chatRoomsModel)
     else
         Sub.none
 

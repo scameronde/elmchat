@@ -1,4 +1,4 @@
-module ChatWindow exposing (Msg(Exit, Open), Model, init, update, view, subscriptions)
+module ChatRoom exposing (Msg(Exit, Open), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

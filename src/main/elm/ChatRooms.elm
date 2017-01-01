@@ -1,4 +1,4 @@
-module RoomList exposing (Msg(Open), Model, init, update, view, subscriptions)
+module ChatRooms exposing (Msg(Open), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import Http
 import BusinessTypes
 import RestClient
-import ChatWindow
+import ChatRoom
 import Utils
 import Tuple exposing (..)
 import Time
@@ -15,7 +15,7 @@ import Time
 type Msg
     = Open BusinessTypes.Participant
     | SelectChatRoom String
-    | ChatWindowMsg ChatWindow.Msg
+    | ChatRoomMsg ChatRoom.Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
@@ -26,7 +26,7 @@ type Msg
 type alias Model =
     { participant : Maybe BusinessTypes.Participant
     , chatRooms : List BusinessTypes.ChatRoom
-    , chatWindow : ChatWindow.Model
+    , chatRoom : ChatRoom.Model
     , selectedChatRoom : Maybe BusinessTypes.Id
     , newChatRoomTitle : String
     }
@@ -40,16 +40,16 @@ getChatRoom model id =
 init : ( Model, Cmd Msg )
 init =
     let
-        chatWindow =
-            ChatWindow.init
+        chatRoom =
+            ChatRoom.init
     in
         ( { participant = Nothing
           , chatRooms = []
-          , chatWindow = first chatWindow
+          , chatRoom = first chatRoom
           , selectedChatRoom = Nothing
           , newChatRoomTitle = ""
           }
-        , Cmd.map ChatWindowMsg (second chatWindow)
+        , Cmd.map ChatRoomMsg (second chatRoom)
         )
 
 
@@ -64,7 +64,7 @@ update msg model =
                 newModel =
                     { model | selectedChatRoom = Just id }
             in
-                ( newModel, Utils.toCmd <| ChatWindowMsg <| ChatWindow.Open (getChatRoom newModel id) (newModel.participant) )
+                ( newModel, Utils.toCmd <| ChatRoomMsg <| ChatRoom.Open (getChatRoom newModel id) (newModel.participant) )
 
         ChangeTitle title ->
             ( { model | newChatRoomTitle = title }, Cmd.none )
@@ -87,8 +87,8 @@ update msg model =
         TickTock time ->
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
-        ChatWindowMsg subMsg ->
-            (ChatWindow.update subMsg model.chatWindow) |> mapFirst (\a -> { model | chatWindow = a }) |> mapSecond (Cmd.map ChatWindowMsg)
+        ChatRoomMsg subMsg ->
+            (ChatRoom.update subMsg model.chatRoom) |> mapFirst (\a -> { model | chatRoom = a }) |> mapSecond (Cmd.map ChatRoomMsg)
 
 
 rowClass : BusinessTypes.ChatRoom -> Model -> String
@@ -137,7 +137,7 @@ view model =
             , viewNewChatRoom model
             ]
         , div [ class "col-md-6" ]
-            [ Html.map ChatWindowMsg (ChatWindow.view model.chatWindow)
+            [ Html.map ChatRoomMsg (ChatRoom.view model.chatRoom)
             ]
         ]
 
@@ -145,6 +145,6 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map ChatWindowMsg (ChatWindow.subscriptions model.chatWindow)
+        [ Sub.map ChatRoomMsg (ChatRoom.subscriptions model.chatRoom)
         , Time.every Time.second TickTock
         ]
