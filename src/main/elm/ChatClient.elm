@@ -3,7 +3,7 @@ module ChatClient exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Utils
+import Utils exposing (..)
 import NavBar exposing (..)
 import Login
 import Chat
@@ -55,9 +55,9 @@ init flags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LoginMsg (Login.Exit participant) ->
+        LoginMsg (Login.Login participant) ->
             ( { model | programState = ChatState }
-            , Utils.toCmd <| ChatMsg <| Chat.Open participant
+            , toCmd (ChatMsg (Chat.Open participant))
             )
 
         LoginMsg subMsg ->
@@ -97,10 +97,12 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if (model.programState == ChatState) then
-        Sub.map ChatMsg (Chat.subscriptions model.chatModel)
-    else
-        Sub.none
+    case model.programState of
+        ChatState ->
+            Sub.map ChatMsg (Chat.subscriptions model.chatModel)
+
+        LoginState ->
+            Sub.map LoginMsg (Login.subscriptions model.loginModel)
 
 
 

@@ -70,36 +70,6 @@ update msg model =
                 |> mapSecond (Cmd.map ChatRoomMsg)
 
 
-
-{-
-   update : Msg -> Model -> ( Model, Cmd Msg )
-   update msg model =
-       case msg of
-           Open participant ->
-               ( { model | participant = Just participant }, RestClient.getChatRooms GetChatRoomsResult )
-
-           SelectChatRoom id ->
-               let
-                   newModel =
-                       { model | selectedChatRoom = Just id }
-
-                   selectedChatRoom =
-                       getChatRoom model.chatRooms id
-
-                   newCmd =
-                       case ( selectedChatRoom, model.participant ) of
-                           ( Just chatRoom, Just participant ) ->
-                               Utils.toCmd <| ChatRoomMsg <| ChatRoom.Open chatRoom participant
-
-                           _ ->
-                               Utils.toCmd <| ChatRoomMsg <| ChatRoom.Close
-               in
-                   ( newModel, newCmd )
-
-
--}
-
-
 view : Model -> Html Msg
 view model =
     div [ class "row" ]
