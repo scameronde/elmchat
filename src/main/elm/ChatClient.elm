@@ -1,4 +1,4 @@
-module Chat exposing (..)
+module ChatClient exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
