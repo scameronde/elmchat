@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import Http
 import BusinessTypes exposing (..)
 import RestClient
-import Utils
+import Utils exposing (..)
 import Time
 
 
@@ -23,7 +23,7 @@ type Msg
 
 type alias Model =
     { chatRooms : List ChatRoom
-    , selectedChatRoom : Maybe Id
+    , selectedChatRoomId : Maybe Id
     , newChatRoomTitle : String
     }
 
@@ -36,7 +36,7 @@ getChatRoom chatRooms id =
 init : ( Model, Cmd Msg )
 init =
     ( { chatRooms = []
-      , selectedChatRoom = Nothing
+      , selectedChatRoomId = Nothing
       , newChatRoomTitle = ""
       }
     , RestClient.getChatRooms GetChatRoomsResult
@@ -49,26 +49,31 @@ update msg model =
         SelectChatRoom id ->
             let
                 newModel =
-                    { model | selectedChatRoom = Just id }
-
-                selectedChatRoom =
-                    getChatRoom model.chatRooms id
+                    if (model.selectedChatRoomId == Just id) then
+                        model |> setSelectedChatRoomId Nothing
+                    else
+                        model |> setSelectedChatRoomId (Just id)
 
                 newCmd =
-                    case selectedChatRoom of
-                        Just chatRoom ->
-                            Utils.toCmd <| Selected chatRoom
+                    if (model.selectedChatRoomId == Just id) then
+                        toCmd Deselected
+                    else
+                        case getChatRoom model.chatRooms id of
+                            Just chatRoom ->
+                                Utils.toCmd <| Selected chatRoom
 
-                        _ ->
-                            Utils.toCmd <| Deselected
+                            _ ->
+                                Utils.toCmd <| Deselected
             in
                 ( newModel, newCmd )
 
         ChangeTitle title ->
-            ( { model | newChatRoomTitle = title }, Cmd.none )
+            ( model |> setNewChatRoomTitle title, Cmd.none )
 
         PostChatRoom model ->
-            ( { model | newChatRoomTitle = "" }, RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult )
+            ( model |> setNewChatRoomTitle ""
+            , RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult
+            )
 
         PostChatRoomResult (Ok id) ->
             ( model, RestClient.getChatRooms GetChatRoomsResult )
@@ -77,7 +82,7 @@ update msg model =
             ( model, Cmd.none )
 
         GetChatRoomsResult (Ok chatRooms) ->
-            ( { model | chatRooms = chatRooms }, Cmd.none )
+            ( model |> setChatRooms chatRooms, Cmd.none )
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
@@ -94,7 +99,7 @@ update msg model =
 
 rowClass : BusinessTypes.ChatRoom -> Model -> String
 rowClass chatRoom model =
-    if (model.selectedChatRoom == Just (chatRoom.id)) then
+    if (model.selectedChatRoomId == Just (chatRoom.id)) then
         "info"
     else
         ""
@@ -141,3 +146,22 @@ view model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Time.every Time.second Refresh
+
+
+
+-- Setter
+
+
+setChatRooms : b -> { a | chatRooms : b } -> { a | chatRooms : b }
+setChatRooms chatRooms record =
+    { record | chatRooms = chatRooms }
+
+
+setSelectedChatRoomId : b -> { a | selectedChatRoomId : b } -> { a | selectedChatRoomId : b }
+setSelectedChatRoomId selectedChatRoomId record =
+    { record | selectedChatRoomId = selectedChatRoomId }
+
+
+setNewChatRoomTitle : b -> { a | newChatRoomTitle : b } -> { a | newChatRoomTitle : b }
+setNewChatRoomTitle newChatRoomTitle record =
+    { record | newChatRoomTitle = newChatRoomTitle }
