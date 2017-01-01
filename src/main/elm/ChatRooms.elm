@@ -1,4 +1,4 @@
-module ChatRooms exposing (Msg(Open), Model, init, update, view, subscriptions)
+module ChatRooms exposing (Msg(Selected, Deselected), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,27 +6,23 @@ import Html.Events exposing (..)
 import Http
 import BusinessTypes exposing (..)
 import RestClient
-import ChatRoom
 import Utils
-import Tuple exposing (..)
 import Time
 
 
 type Msg
-    = Open Participant
+    = Selected ChatRoom
+    | Deselected
     | SelectChatRoom Id
-    | ChatRoomMsg ChatRoom.Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
-    | TickTock Time.Time
+    | Refresh Time.Time
 
 
 type alias Model =
-    { participant : Maybe Participant
-    , chatRooms : List ChatRoom
-    , chatRoom : ChatRoom.Model
+    { chatRooms : List ChatRoom
     , selectedChatRoom : Maybe Id
     , newChatRoomTitle : String
     }
@@ -39,26 +35,17 @@ getChatRoom chatRooms id =
 
 init : ( Model, Cmd Msg )
 init =
-    let
-        chatRoom =
-            ChatRoom.init
-    in
-        ( { participant = Nothing
-          , chatRooms = []
-          , chatRoom = first chatRoom
-          , selectedChatRoom = Nothing
-          , newChatRoomTitle = ""
-          }
-        , Cmd.map ChatRoomMsg (second chatRoom)
-        )
+    ( { chatRooms = []
+      , selectedChatRoom = Nothing
+      , newChatRoomTitle = ""
+      }
+    , RestClient.getChatRooms GetChatRoomsResult
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Open participant ->
-            ( { model | participant = Just participant }, RestClient.getChatRooms GetChatRoomsResult )
-
         SelectChatRoom id ->
             let
                 newModel =
@@ -68,12 +55,12 @@ update msg model =
                     getChatRoom model.chatRooms id
 
                 newCmd =
-                    case ( selectedChatRoom, model.participant ) of
-                        ( Just chatRoom, Just participant ) ->
-                            Utils.toCmd <| ChatRoomMsg <| ChatRoom.Open chatRoom participant
+                    case selectedChatRoom of
+                        Just chatRoom ->
+                            Utils.toCmd <| Selected chatRoom
 
                         _ ->
-                            Utils.toCmd <| ChatRoomMsg <| ChatRoom.Close
+                            Utils.toCmd <| Deselected
             in
                 ( newModel, newCmd )
 
@@ -95,11 +82,14 @@ update msg model =
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
 
-        TickTock time ->
+        Refresh time ->
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
-        ChatRoomMsg subMsg ->
-            (ChatRoom.update subMsg model.chatRoom) |> mapFirst (\a -> { model | chatRoom = a }) |> mapSecond (Cmd.map ChatRoomMsg)
+        Selected chatRoom ->
+            ( model, Cmd.none )
+
+        Deselected ->
+            ( model, Cmd.none )
 
 
 rowClass : BusinessTypes.ChatRoom -> Model -> String
@@ -141,21 +131,13 @@ viewNewChatRoom model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "row" ]
-        [ div [ class "col-md-6" ]
-            [ h2 [] [ text "Chat Room Selection" ]
-            , viewChatRooms model
-            , viewNewChatRoom model
-            ]
-        , div [ class "col-md-6" ]
-            [ Html.map ChatRoomMsg (ChatRoom.view model.chatRoom)
-            ]
+    div []
+        [ h2 [] [ text "Chat Room Selection" ]
+        , viewChatRooms model
+        , viewNewChatRoom model
         ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Sub.map ChatRoomMsg (ChatRoom.subscriptions model.chatRoom)
-        , Time.every Time.second TickTock
-        ]
+    Time.every Time.second Refresh

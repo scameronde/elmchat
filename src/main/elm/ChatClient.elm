@@ -2,11 +2,11 @@ module ChatClient exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Tuple exposing (..)
 import Utils
 import NavBar exposing (..)
 import Login
-import ChatRooms
-import Tuple exposing (..)
+import Chat
 
 
 type alias Flags =
@@ -15,18 +15,18 @@ type alias Flags =
 
 type Msg
     = LoginMsg Login.Msg
-    | ChatRoomsMsg ChatRooms.Msg
+    | ChatMsg Chat.Msg
 
 
 type ProgramState
     = LoginState
-    | ChatRoomsState
+    | ChatState
 
 
 type alias Model =
     { programState : ProgramState
     , loginModel : Login.Model
-    , chatRoomsModel : ChatRooms.Model
+    , chatModel : Chat.Model
     , debug : Bool
     }
 
@@ -37,17 +37,17 @@ init flags =
         loginInit =
             Login.init
 
-        chatRoomsInit =
-            ChatRooms.init
+        chatInit =
+            Chat.init
     in
         ( { programState = LoginState
           , loginModel = first loginInit
-          , chatRoomsModel = first chatRoomsInit
+          , chatModel = first chatInit
           , debug = flags.debug
           }
         , Cmd.batch
             [ Cmd.map LoginMsg (second loginInit)
-            , Cmd.map ChatRoomsMsg (second chatRoomsInit)
+            , Cmd.map ChatMsg (second chatInit)
             ]
         )
 
@@ -56,8 +56,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LoginMsg (Login.Exit participant) ->
-            ( { model | programState = ChatRoomsState }
-            , Utils.toCmd <| ChatRoomsMsg <| ChatRooms.Open participant
+            ( { model | programState = ChatState }
+            , Utils.toCmd <| ChatMsg <| Chat.Open participant
             )
 
         LoginMsg subMsg ->
@@ -65,10 +65,10 @@ update msg model =
                 |> mapFirst (\a -> { model | loginModel = a })
                 |> mapSecond (Cmd.map LoginMsg)
 
-        ChatRoomsMsg subMsg ->
-            (ChatRooms.update subMsg model.chatRoomsModel)
-                |> mapFirst (\a -> { model | chatRoomsModel = a })
-                |> mapSecond (Cmd.map ChatRoomsMsg)
+        ChatMsg subMsg ->
+            (Chat.update subMsg model.chatModel)
+                |> mapFirst (\a -> { model | chatModel = a })
+                |> mapSecond (Cmd.map ChatMsg)
 
 
 viewMainArea : Model -> Html Msg
@@ -77,8 +77,8 @@ viewMainArea model =
         LoginState ->
             Html.map LoginMsg (Login.view model.loginModel)
 
-        ChatRoomsState ->
-            Html.map ChatRoomsMsg (ChatRooms.view model.chatRoomsModel)
+        ChatState ->
+            Html.map ChatMsg (Chat.view model.chatModel)
 
 
 view : Model -> Html Msg
@@ -97,8 +97,8 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if (model.programState == ChatRoomsState) then
-        Sub.map ChatRoomsMsg (ChatRooms.subscriptions model.chatRoomsModel)
+    if (model.programState == ChatState) then
+        Sub.map ChatMsg (Chat.subscriptions model.chatModel)
     else
         Sub.none
 
