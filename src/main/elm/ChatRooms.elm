@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import BusinessTypes
+import BusinessTypes exposing (..)
 import RestClient
 import ChatRoom
 import Utils
@@ -13,28 +13,28 @@ import Time
 
 
 type Msg
-    = Open BusinessTypes.Participant
-    | SelectChatRoom String
+    = Open Participant
+    | SelectChatRoom Id
     | ChatRoomMsg ChatRoom.Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
-    | GetChatRoomsResult (Result Http.Error (List BusinessTypes.ChatRoom))
+    | GetChatRoomsResult (Result Http.Error (List ChatRoom))
     | TickTock Time.Time
 
 
 type alias Model =
-    { participant : Maybe BusinessTypes.Participant
-    , chatRooms : List BusinessTypes.ChatRoom
+    { participant : Maybe Participant
+    , chatRooms : List ChatRoom
     , chatRoom : ChatRoom.Model
-    , selectedChatRoom : Maybe BusinessTypes.Id
+    , selectedChatRoom : Maybe Id
     , newChatRoomTitle : String
     }
 
 
-getChatRoom : Model -> BusinessTypes.Id -> Maybe BusinessTypes.ChatRoom
-getChatRoom model id =
-    List.head <| List.filter (\chatRoom -> chatRoom.id == id) model.chatRooms
+getChatRoom : List ChatRoom -> Id -> Maybe ChatRoom
+getChatRoom chatRooms id =
+    List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
 
 
 init : ( Model, Cmd Msg )
@@ -63,8 +63,19 @@ update msg model =
             let
                 newModel =
                     { model | selectedChatRoom = Just id }
+
+                selectedChatRoom =
+                    getChatRoom model.chatRooms id
+
+                newCmd =
+                    case ( selectedChatRoom, model.participant ) of
+                        ( Just chatRoom, Just participant ) ->
+                            Utils.toCmd <| ChatRoomMsg <| ChatRoom.Open chatRoom participant
+
+                        _ ->
+                            Utils.toCmd <| ChatRoomMsg <| ChatRoom.Close
             in
-                ( newModel, Utils.toCmd <| ChatRoomMsg <| ChatRoom.Open (getChatRoom newModel id) (newModel.participant) )
+                ( newModel, newCmd )
 
         ChangeTitle title ->
             ( { model | newChatRoomTitle = title }, Cmd.none )

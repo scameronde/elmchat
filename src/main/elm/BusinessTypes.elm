@@ -69,3 +69,18 @@ setParticipant participant record =
 setChatRoom : b -> { a | chatRoom : b } -> { a | chatRoom : b }
 setChatRoom chatRoom record =
     { record | chatRoom = chatRoom }
+
+
+setMessage : b -> { a | message : b } -> { a | message : b }
+setMessage message record =
+    { record | message = message }
+
+
+setMessageLog : b -> { a | messageLog : b } -> { a | messageLog : b }
+setMessageLog messageLog record =
+    { record | messageLog = messageLog }
+
+
+setError : b -> { a | error : b } -> { a | error : b }
+setError error record =
+    { record | error = error }
