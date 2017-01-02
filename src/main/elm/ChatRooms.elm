@@ -14,11 +14,13 @@ type Msg
     = Selected ChatRoom
     | Deselected
     | SelectChatRoom Id
+    | DeleteChatRoom Id
+    | DeleteChatRoomResult (Result Http.Error ())
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
-    | Refresh Time.Time
+    | GetChatRooms Time.Time
 
 
 type alias Model =
@@ -81,14 +83,28 @@ update msg model =
         PostChatRoomResult (Err error) ->
             ( model, Cmd.none )
 
+        GetChatRooms time ->
+            ( model, RestClient.getChatRooms GetChatRoomsResult )
+
         GetChatRoomsResult (Ok chatRooms) ->
-            ( model |> setChatRooms chatRooms, Cmd.none )
+            ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
 
-        Refresh time ->
-            ( model, RestClient.getChatRooms GetChatRoomsResult )
+        DeleteChatRoom id ->
+            if (Just id == model.selectedChatRoomId) then
+                ( model
+                , Cmd.batch
+                    [ toCmd (Deselected)
+                    , RestClient.deleteChatRoom id DeleteChatRoomResult
+                    ]
+                )
+            else
+                ( model, RestClient.deleteChatRoom id DeleteChatRoomResult )
+
+        DeleteChatRoomResult _ ->
+            ( model, Cmd.none )
 
         Selected chatRoom ->
             ( model, Cmd.none )
@@ -110,13 +126,17 @@ viewChatRooms model =
     table [ class "table table-striped table-hover" ]
         [ thead []
             [ tr []
-                [ th [] [ text "Available Chat Rooms" ] ]
+                [ th [] [ text "Available Chat Rooms" ]
+                , th [] [ text "Actions" ]
+                ]
             ]
         , tbody []
             (List.map
                 (\chatRoom ->
                     tr [ class (rowClass chatRoom model) ]
-                        [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ] ]
+                        [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ]
+                        , td [ onClick (DeleteChatRoom chatRoom.id) ] [ text "X" ]
+                        ]
                 )
                 model.chatRooms
             )
@@ -130,7 +150,11 @@ viewNewChatRoom model =
             [ label [ for "titleInput" ] [ text "New Chat Room" ]
             , input [ id "titleInput", type_ "text", value model.newChatRoomTitle, class "form-control", onInput ChangeTitle ] []
             ]
-        , button [ class "btn btn-primary" ] [ text "Create" ]
+        , button
+            [ class "btn btn-primary"
+            , disabled ((model.newChatRoomTitle |> String.trim |> String.length) == 0)
+            ]
+            [ text "Create" ]
         ]
 
 
@@ -145,7 +169,7 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every Time.second Refresh
+    Time.every Time.second GetChatRooms
 
 
 

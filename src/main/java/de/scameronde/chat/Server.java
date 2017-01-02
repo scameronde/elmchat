@@ -2,6 +2,7 @@ package de.scameronde.chat;
 
 import static de.scameronde.chat.JsonUtils.dataToJson;
 import static de.scameronde.chat.JsonUtils.jsonToData;
+import static spark.Spark.delete;
 import static spark.Spark.get;
 import static spark.Spark.options;
 import static spark.Spark.post;
@@ -15,6 +16,7 @@ import de.scameronde.chat.businesstypes.MessageLog;
 import de.scameronde.chat.businesstypes.Participant;
 
 import javaslang.control.Either;
+import javaslang.control.Option;
 import spark.Request;
 import spark.Response;
 
@@ -43,6 +45,15 @@ public class Server {
       Optional<MessageLog> messageLog = chatRoom.map(cr -> repository.getMessageLog(cr));
       Either<Exception, Optional<String>> jsonMessageLog = dataToJson(messageLog);
       return createOptionalResponse(response, jsonMessageLog);
+    }));
+
+    // delete chat room including history
+    delete("/chatRoom/:chatRoomId", ((request, response) -> {
+      String id = getParameter(request, ":chatRoomId");
+      Optional<ChatRoom> chatRoom = findChatRoom(id);
+      chatRoom.ifPresent(cr -> repository.deleteChatRoom(cr));
+      Either<Exception, Optional<String>> result = Either.right(chatRoom.map(x -> ""));
+      return createOptionalResponse(response, result);
     }));
 
     // make a participant known to the system and return its id back to the caller

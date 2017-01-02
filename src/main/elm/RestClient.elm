@@ -1,4 +1,4 @@
-module RestClient exposing (..)
+module RestClient exposing (postParticipant, postChatRoom, getChatRoom, getChatRooms, deleteChatRoom)
 
 import Http
 import BusinessTypes
@@ -39,3 +39,25 @@ getChatRoom id msg =
             Http.get ("http://localhost:4567/chatRoom/" ++ id) Json.decodeMessageLog
     in
         Http.send msg getChatRoomRequest
+
+
+deleteChatRoom : String -> (Result Http.Error () -> msg) -> Cmd msg
+deleteChatRoom id msg =
+    let
+        deleteChatRoomRequest =
+            delete ("http://localhost:4567/chatRoom/" ++ id)
+    in
+        Http.send msg deleteChatRoomRequest
+
+
+delete : String -> Http.Request ()
+delete url =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , expect = Http.expectStringResponse (\_ -> Ok ())
+        , timeout = Nothing
+        , withCredentials = False
+        }

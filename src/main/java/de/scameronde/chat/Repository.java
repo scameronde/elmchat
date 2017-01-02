@@ -13,6 +13,8 @@ public interface Repository {
 
   String addChatRoom(ChatRoom chatRoom);
 
+  void deleteChatRoom(ChatRoom chatRoom);
+
   void addMessage(ChatRoom chatRoom, String message, Participant participant);
 
   MessageLog getMessageLog(ChatRoom chatRoom);

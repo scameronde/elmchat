@@ -48,6 +48,12 @@ public class InMemoryRepository implements Repository {
   }
 
   @Override
+  public void deleteChatRoom(ChatRoom chatRoom) {
+    chatRooms.remove(chatRoom);
+    logs.remove(chatRoom);
+  }
+
+  @Override
   public void addMessage(ChatRoom chatRoom, String message, Participant participant) {
     logs.merge(chatRoom, message, String::concat);
   }
