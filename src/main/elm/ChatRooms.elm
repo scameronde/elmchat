@@ -135,7 +135,13 @@ viewChatRooms model =
                 (\chatRoom ->
                     tr [ class (rowClass chatRoom model) ]
                         [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ]
-                        , td [] [ button [ class "btn btn-danger btn-xs", onClick (DeleteChatRoom chatRoom.id) ] [ text "X" ] ]
+                        , td []
+                            [ button
+                                [ class "btn btn-danger btn-xs"
+                                , onClick (DeleteChatRoom chatRoom.id)
+                                ]
+                                [ text "X" ]
+                            ]
                         ]
                 )
                 model.chatRooms
