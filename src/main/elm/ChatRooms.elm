@@ -22,8 +22,8 @@ type Msg
     | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
     | GetChatRooms Time.Time
-    | Acknowledge
-    | Cancel
+    | DeleteChatRoomAcknowledge
+    | DeleteChatRoomCancel
 
 
 type alias Model =
@@ -108,7 +108,7 @@ update msg model =
         DeleteChatRoomResult _ ->
             ( model, Cmd.none )
 
-        Acknowledge ->
+        DeleteChatRoomAcknowledge ->
             case model.chatRoomIdToDelete of
                 Just id ->
                     if (Just id == model.selectedChatRoomId) then
@@ -126,7 +126,7 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        Cancel ->
+        DeleteChatRoomCancel ->
             ( model |> setChatRoomIdToDelete Nothing, Cmd.none )
 
         -- for external communication
@@ -219,7 +219,7 @@ subscriptions model =
 
 dialogConfig : Model -> Dialog.Config Msg
 dialogConfig model =
-    { closeMessage = Just Acknowledge
+    { closeMessage = Just DeleteChatRoomAcknowledge
     , containerClass = Nothing
     , header = Just (h3 [] [ text "Delete chat room" ])
     , body = Just (text ("Really delete chat room?"))
@@ -228,10 +228,10 @@ dialogConfig model =
             (div []
                 [ button
                     [ class "btn btn-success"
-                    , onClick Acknowledge
+                    , onClick DeleteChatRoomAcknowledge
                     ]
                     [ text "OK" ]
-                , button [ class "btn", onClick Cancel ] [ text "Cancel" ]
+                , button [ class "btn", onClick DeleteChatRoomCancel ] [ text "DeleteChatRoomCancel" ]
                 ]
             )
     }
