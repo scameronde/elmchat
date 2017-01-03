@@ -3,6 +3,7 @@ module ChatRooms exposing (Msg(Selected, Deselected), Model, init, update, view,
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Dialog
 import Http
 import BusinessTypes exposing (..)
 import RestClient
@@ -21,11 +22,14 @@ type Msg
     | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
     | GetChatRooms Time.Time
+    | Acknowledge
+    | Cancel
 
 
 type alias Model =
     { chatRooms : List ChatRoom
     , selectedChatRoomId : Maybe Id
+    , chatRoomIdToDelete : Maybe Id
     , newChatRoomTitle : String
     }
 
@@ -39,6 +43,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { chatRooms = []
       , selectedChatRoomId = Nothing
+      , chatRoomIdToDelete = Nothing
       , newChatRoomTitle = ""
       }
     , RestClient.getChatRooms GetChatRoomsResult
@@ -48,6 +53,7 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        -- select or deselect a chat room
         SelectChatRoom id ->
             let
                 newModel =
@@ -69,9 +75,11 @@ update msg model =
             in
                 ( newModel, newCmd )
 
+        -- enter the title for a new chat room
         ChangeTitle title ->
             ( model |> setNewChatRoomTitle title, Cmd.none )
 
+        -- add a new chat room
         PostChatRoom model ->
             ( model |> setNewChatRoomTitle ""
             , RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult
@@ -83,6 +91,7 @@ update msg model =
         PostChatRoomResult (Err error) ->
             ( model, Cmd.none )
 
+        -- get available chat rooms
         GetChatRooms time ->
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
@@ -92,20 +101,35 @@ update msg model =
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
 
+        -- delete chat room
         DeleteChatRoom id ->
-            if (Just id == model.selectedChatRoomId) then
-                ( model
-                , Cmd.batch
-                    [ toCmd (Deselected)
-                    , RestClient.deleteChatRoom id DeleteChatRoomResult
-                    ]
-                )
-            else
-                ( model, RestClient.deleteChatRoom id DeleteChatRoomResult )
+            ( model |> setChatRoomIdToDelete (Just id), Cmd.none )
 
         DeleteChatRoomResult _ ->
             ( model, Cmd.none )
 
+        Acknowledge ->
+            case model.chatRoomIdToDelete of
+                Just id ->
+                    if (Just id == model.selectedChatRoomId) then
+                        ( model |> setChatRoomIdToDelete Nothing
+                        , Cmd.batch
+                            [ toCmd (Deselected)
+                            , RestClient.deleteChatRoom id DeleteChatRoomResult
+                            ]
+                        )
+                    else
+                        ( model |> setChatRoomIdToDelete Nothing
+                        , RestClient.deleteChatRoom id DeleteChatRoomResult
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Cancel ->
+            ( model |> setChatRoomIdToDelete Nothing, Cmd.none )
+
+        -- for external communication
         Selected chatRoom ->
             ( model, Cmd.none )
 
@@ -164,18 +188,53 @@ viewNewChatRoom model =
         ]
 
 
+viewDialog : Model -> Html Msg
+viewDialog model =
+    Dialog.view
+        (if model.chatRoomIdToDelete /= Nothing then
+            Just (dialogConfig model)
+         else
+            Nothing
+        )
+
+
 view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Chat Room Selection" ]
         , viewChatRooms model
         , viewNewChatRoom model
+        , viewDialog model
         ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Time.every Time.second GetChatRooms
+
+
+
+-- Dialog
+
+
+dialogConfig : Model -> Dialog.Config Msg
+dialogConfig model =
+    { closeMessage = Just Acknowledge
+    , containerClass = Nothing
+    , header = Just (h3 [] [ text "Delete chat room" ])
+    , body = Just (text ("Really delete chat room?"))
+    , footer =
+        Just
+            (div []
+                [ button
+                    [ class "btn btn-success"
+                    , onClick Acknowledge
+                    ]
+                    [ text "OK" ]
+                , button [ class "btn", onClick Cancel ] [ text "Cancel" ]
+                ]
+            )
+    }
 
 
 
@@ -190,6 +249,11 @@ setChatRooms chatRooms record =
 setSelectedChatRoomId : b -> { a | selectedChatRoomId : b } -> { a | selectedChatRoomId : b }
 setSelectedChatRoomId selectedChatRoomId record =
     { record | selectedChatRoomId = selectedChatRoomId }
+
+
+setChatRoomIdToDelete : b -> { a | chatRoomIdToDelete : b } -> { a | chatRoomIdToDelete : b }
+setChatRoomIdToDelete chatRoomIdToDelete record =
+    { record | chatRoomIdToDelete = chatRoomIdToDelete }
 
 
 setNewChatRoomTitle : b -> { a | newChatRoomTitle : b } -> { a | newChatRoomTitle : b }
