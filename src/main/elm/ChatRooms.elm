@@ -34,11 +34,6 @@ type alias Model =
     }
 
 
-getChatRoom : List ChatRoom -> Id -> Maybe ChatRoom
-getChatRoom chatRooms id =
-    List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
-
-
 init : ( Model, Cmd Msg )
 init =
     ( { chatRooms = []
@@ -55,7 +50,7 @@ update msg model =
     case msg of
         -- select or deselect a chat room
         SelectChatRoom id ->
-            selectChatRoom model id
+            selectChatRoom model (Just id)
 
         -- enter the title for a new chat room
         ChangeTitle title ->
@@ -78,7 +73,10 @@ update msg model =
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         GetChatRoomsResult (Ok chatRooms) ->
-            ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
+            if (getChatRoom chatRooms model.selectedChatRoomId == Nothing) then
+              ( model |> setChatRooms (List.sortBy .title chatRooms) |> setSelectedChatRoomId Nothing, toCmd Deselected )
+            else
+              ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
@@ -104,14 +102,25 @@ update msg model =
             ( model, Cmd.none )
 
 
-selectChatRoom : Model -> Id -> ( Model, Cmd Msg )
+getChatRoom : List ChatRoom -> Maybe Id -> Maybe ChatRoom
+getChatRoom chatRooms id =
+    case id of
+      Just id ->
+        List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
+
+      Nothing ->
+        Nothing
+
+
+
+selectChatRoom : Model -> Maybe Id -> ( Model, Cmd Msg )
 selectChatRoom model id =
-    if (model.selectedChatRoomId == Just id) then
+    if (model.selectedChatRoomId == id) then
         ( model |> setSelectedChatRoomId Nothing, toCmd Deselected )
     else
         let
             newModel =
-                model |> setSelectedChatRoomId (Just id)
+                model |> setSelectedChatRoomId id
 
             newCmd =
                 getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd <| Selected x) |> Maybe.withDefault (toCmd <| Deselected)
