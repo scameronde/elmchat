@@ -16,14 +16,14 @@ type Msg
     | Deselected
     | SelectChatRoom Id
     | DeleteChatRoom Id
+    | DeleteChatRoomAcknowledge
+    | DeleteChatRoomCancel
     | DeleteChatRoomResult (Result Http.Error ())
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
     | GetChatRooms Time.Time
-    | DeleteChatRoomAcknowledge
-    | DeleteChatRoomCancel
 
 
 type alias Model =
@@ -55,25 +55,7 @@ update msg model =
     case msg of
         -- select or deselect a chat room
         SelectChatRoom id ->
-            let
-                newModel =
-                    if (model.selectedChatRoomId == Just id) then
-                        model |> setSelectedChatRoomId Nothing
-                    else
-                        model |> setSelectedChatRoomId (Just id)
-
-                newCmd =
-                    if (model.selectedChatRoomId == Just id) then
-                        toCmd Deselected
-                    else
-                        case getChatRoom model.chatRooms id of
-                            Just chatRoom ->
-                                Utils.toCmd <| Selected chatRoom
-
-                            _ ->
-                                Utils.toCmd <| Deselected
-            in
-                ( newModel, newCmd )
+            selectChatRoom model id
 
         -- enter the title for a new chat room
         ChangeTitle title ->
@@ -105,29 +87,14 @@ update msg model =
         DeleteChatRoom id ->
             ( model |> setChatRoomIdToDelete (Just id), Cmd.none )
 
-        DeleteChatRoomResult _ ->
-            ( model, Cmd.none )
-
         DeleteChatRoomAcknowledge ->
-            case model.chatRoomIdToDelete of
-                Just id ->
-                    if (Just id == model.selectedChatRoomId) then
-                        ( model |> setChatRoomIdToDelete Nothing
-                        , Cmd.batch
-                            [ toCmd (Deselected)
-                            , RestClient.deleteChatRoom id DeleteChatRoomResult
-                            ]
-                        )
-                    else
-                        ( model |> setChatRoomIdToDelete Nothing
-                        , RestClient.deleteChatRoom id DeleteChatRoomResult
-                        )
-
-                Nothing ->
-                    ( model, Cmd.none )
+            model.chatRoomIdToDelete |> Maybe.map (deleteChatRoom model) |> Maybe.withDefault ( model, Cmd.none )
 
         DeleteChatRoomCancel ->
             ( model |> setChatRoomIdToDelete Nothing, Cmd.none )
+
+        DeleteChatRoomResult _ ->
+            ( model, Cmd.none )
 
         -- for external communication
         Selected chatRoom ->
@@ -135,6 +102,36 @@ update msg model =
 
         Deselected ->
             ( model, Cmd.none )
+
+
+selectChatRoom : Model -> Id -> ( Model, Cmd Msg )
+selectChatRoom model id =
+    if (model.selectedChatRoomId == Just id) then
+        ( model |> setSelectedChatRoomId Nothing, toCmd Deselected )
+    else
+        let
+            newModel =
+                model |> setSelectedChatRoomId (Just id)
+
+            newCmd =
+                getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd <| Selected x) |> Maybe.withDefault (toCmd <| Deselected)
+        in
+            ( newModel, newCmd )
+
+
+deleteChatRoom : Model -> Id -> ( Model, Cmd Msg )
+deleteChatRoom model id =
+    if (Just id == model.selectedChatRoomId) then
+        ( model |> setChatRoomIdToDelete Nothing
+        , Cmd.batch
+            [ toCmd (Deselected)
+            , RestClient.deleteChatRoom id DeleteChatRoomResult
+            ]
+        )
+    else
+        ( model |> setChatRoomIdToDelete Nothing
+        , RestClient.deleteChatRoom id DeleteChatRoomResult
+        )
 
 
 rowClass : BusinessTypes.ChatRoom -> Model -> String
@@ -227,11 +224,11 @@ dialogConfig model =
         Just
             (div []
                 [ button
-                    [ class "btn btn-success"
+                    [ class "btn btn-danger"
                     , onClick DeleteChatRoomAcknowledge
                     ]
                     [ text "OK" ]
-                , button [ class "btn", onClick DeleteChatRoomCancel ] [ text "DeleteChatRoomCancel" ]
+                , button [ class "btn", onClick DeleteChatRoomCancel ] [ text "Cancel" ]
                 ]
             )
     }
