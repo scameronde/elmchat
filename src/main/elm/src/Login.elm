@@ -1,4 +1,4 @@
-module Login exposing (Msg(Login), Model, init, update, view, subscriptions)
+module Login exposing (Msg(..), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -37,9 +37,6 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Login participant ->
-            ( model, Cmd.none )
-
         ChangeName name ->
             let
                 newParticipant =
@@ -65,6 +62,11 @@ update msg model =
 
         PostParticipantResult (Err error) ->
             ( model |> setError (toString error), Cmd.none )
+
+        -- for external communication
+        Login participant ->
+            ( model, Cmd.none )
+
 
 
 view : Model -> Html Msg
