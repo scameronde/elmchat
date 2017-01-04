@@ -22,8 +22,8 @@ type Msg
     | ChangeTitle String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error String)
-    | GetChatRoomsResult (Result Http.Error (List ChatRoom))
     | GetChatRooms Time.Time
+    | GetChatRoomsResult (Result Http.Error (List ChatRoom))
 
 
 type alias Model =
@@ -74,9 +74,9 @@ update msg model =
 
         GetChatRoomsResult (Ok chatRooms) ->
             if (getChatRoom chatRooms model.selectedChatRoomId == Nothing) then
-              ( model |> setChatRooms (List.sortBy .title chatRooms) |> setSelectedChatRoomId Nothing, toCmd Deselected )
+                ( model |> setChatRooms (List.sortBy .title chatRooms) |> setSelectedChatRoomId Nothing, toCmd Deselected )
             else
-              ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
+                ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
@@ -105,12 +105,11 @@ update msg model =
 getChatRoom : List ChatRoom -> Maybe Id -> Maybe ChatRoom
 getChatRoom chatRooms id =
     case id of
-      Just id ->
-        List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
+        Just id ->
+            List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
 
-      Nothing ->
-        Nothing
-
+        Nothing ->
+            Nothing
 
 
 selectChatRoom : Model -> Maybe Id -> ( Model, Cmd Msg )
@@ -123,7 +122,7 @@ selectChatRoom model id =
                 model |> setSelectedChatRoomId id
 
             newCmd =
-                getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd <| Selected x) |> Maybe.withDefault (toCmd <| Deselected)
+                getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd (Selected x)) |> Maybe.withDefault (toCmd Deselected)
         in
             ( newModel, newCmd )
 
@@ -133,7 +132,7 @@ deleteChatRoom model id =
     if (Just id == model.selectedChatRoomId) then
         ( model |> setChatRoomIdToDelete Nothing
         , Cmd.batch
-            [ toCmd (Deselected)
+            [ toCmd Deselected
             , RestClient.deleteChatRoom id DeleteChatRoomResult
             ]
         )
@@ -145,7 +144,7 @@ deleteChatRoom model id =
 
 rowClass : BusinessTypes.ChatRoom -> Model -> String
 rowClass chatRoom model =
-    if (model.selectedChatRoomId == Just (chatRoom.id)) then
+    if (model.selectedChatRoomId == Just chatRoom.id) then
         "info"
     else
         ""
@@ -204,25 +203,6 @@ viewDialog model =
         )
 
 
-view : Model -> Html Msg
-view model =
-    div []
-        [ h2 [] [ text "Chat Room Selection" ]
-        , viewChatRooms model
-        , viewNewChatRoom model
-        , viewDialog model
-        ]
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Time.every Time.second GetChatRooms
-
-
-
--- Dialog
-
-
 dialogConfig : Model -> Dialog.Config Msg
 dialogConfig model =
     { closeMessage = Just DeleteChatRoomAcknowledge
@@ -241,6 +221,21 @@ dialogConfig model =
                 ]
             )
     }
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ h2 [] [ text "Chat Room Selection" ]
+        , viewChatRooms model
+        , viewNewChatRoom model
+        , viewDialog model
+        ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every Time.second GetChatRooms
 
 
 
