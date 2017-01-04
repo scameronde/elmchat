@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "A simple chat client",
-    "repository": "",
+    "repository": "https://github.com/scameronde/elmchat.git",
     "license": "BSD3",
     "source-directories": [
         "."
