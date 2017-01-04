@@ -47,10 +47,10 @@ update msg model =
             let
                 newModel =
                     model
-                        |> setParticipant (Just participant)
-                        |> setChatRoom (Just chatRoom)
-                        |> setMessage ""
-                        |> setMessageLog ""
+                        |> participantLens.set (Just participant)
+                        |> chatRoomLens.set (Just chatRoom)
+                        |> messageLens.set ""
+                        |> messageLogLens.set ""
 
                 commands =
                     Cmd.batch
@@ -61,22 +61,22 @@ update msg model =
                 ( newModel, commands )
 
         Close ->
-            ( model |> setParticipant Nothing |> setChatRoom Nothing, Cmd.none )
+            ( model |> participantLens.set Nothing |> chatRoomLens.set Nothing, Cmd.none )
 
         SetMessage message ->
-            ( model |> setMessage message, Cmd.none )
+            ( model |> messageLens.set message, Cmd.none )
 
         SendMessage message ->
-            ( model |> setMessage "", WebSocketClient.sendMessage <| BusinessTypes.Message message )
+            ( model |> messageLens.set "", WebSocketClient.sendMessage <| BusinessTypes.Message message )
 
         ReceivedMessage message ->
-            ( model |> setMessageLog (model.messageLog ++ message), Cmd.none )
+            ( model |> messageLogLens.set (model.messageLog ++ message), Cmd.none )
 
         SetChatHistory (Ok messageLog) ->
-            ( model |> setMessageLog messageLog.messageLog, Cmd.none )
+            ( model |> messageLogLens.set messageLog.messageLog, Cmd.none )
 
         SetChatHistory (Err error) ->
-            ( model |> setError (toString error), Cmd.none )
+            ( model |> errorLens.set (toString error), Cmd.none )
 
 
 view : Model -> Html Msg

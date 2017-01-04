@@ -8,6 +8,7 @@ import Http
 import BusinessTypes exposing (..)
 import RestClient
 import Utils exposing (..)
+import Lens exposing (..)
 import Time
 
 
@@ -54,11 +55,11 @@ update msg model =
 
         -- enter the title for a new chat room
         ChangeTitle title ->
-            ( model |> setNewChatRoomTitle title, Cmd.none )
+            ( model |> newChatRoomTitleLens.set title, Cmd.none )
 
         -- add a new chat room
         PostChatRoom model ->
-            ( model |> setNewChatRoomTitle ""
+            ( model |> newChatRoomTitleLens.set ""
             , RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult
             )
 
@@ -74,22 +75,22 @@ update msg model =
 
         GetChatRoomsResult (Ok chatRooms) ->
             if (getChatRoom chatRooms model.selectedChatRoomId == Nothing) then
-                ( model |> setChatRooms (List.sortBy .title chatRooms) |> setSelectedChatRoomId Nothing, toCmd Deselected )
+                ( model |> chatRoomsLens.set (List.sortBy .title chatRooms) |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
             else
-                ( model |> setChatRooms (List.sortBy .title chatRooms), Cmd.none )
+                ( model |> chatRoomsLens.set (List.sortBy .title chatRooms), Cmd.none )
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
 
         -- delete chat room
         DeleteChatRoom id ->
-            ( model |> setChatRoomIdToDelete (Just id), Cmd.none )
+            ( model |> chatRoomIdToDeleteLens.set (Just id), Cmd.none )
 
         DeleteChatRoomAcknowledge ->
             model.chatRoomIdToDelete |> Maybe.map (deleteChatRoom model) |> Maybe.withDefault ( model, Cmd.none )
 
         DeleteChatRoomCancel ->
-            ( model |> setChatRoomIdToDelete Nothing, Cmd.none )
+            ( model |> chatRoomIdToDeleteLens.set Nothing, Cmd.none )
 
         DeleteChatRoomResult _ ->
             ( model, Cmd.none )
@@ -115,11 +116,11 @@ getChatRoom chatRooms id =
 selectChatRoom : Model -> Maybe Id -> ( Model, Cmd Msg )
 selectChatRoom model id =
     if (model.selectedChatRoomId == id) then
-        ( model |> setSelectedChatRoomId Nothing, toCmd Deselected )
+        ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
     else
         let
             newModel =
-                model |> setSelectedChatRoomId id
+                model |> selectedChatRoomIdLens.set id
 
             newCmd =
                 getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd (Selected x)) |> Maybe.withDefault (toCmd Deselected)
@@ -130,14 +131,14 @@ selectChatRoom model id =
 deleteChatRoom : Model -> Id -> ( Model, Cmd Msg )
 deleteChatRoom model id =
     if (Just id == model.selectedChatRoomId) then
-        ( model |> setChatRoomIdToDelete Nothing
+        ( model |> chatRoomIdToDeleteLens.set Nothing
         , Cmd.batch
             [ toCmd Deselected
             , RestClient.deleteChatRoom id DeleteChatRoomResult
             ]
         )
     else
-        ( model |> setChatRoomIdToDelete Nothing
+        ( model |> chatRoomIdToDeleteLens.set Nothing
         , RestClient.deleteChatRoom id DeleteChatRoomResult
         )
 
@@ -239,24 +240,24 @@ subscriptions model =
 
 
 
--- Setter
+-- Lenses
 
 
-setChatRooms : b -> { a | chatRooms : b } -> { a | chatRooms : b }
-setChatRooms chatRooms record =
-    { record | chatRooms = chatRooms }
+chatRoomsLens : Lens { b | chatRooms : a } a
+chatRoomsLens =
+    Lens .chatRooms (\a b -> { b | chatRooms = a })
 
 
-setSelectedChatRoomId : b -> { a | selectedChatRoomId : b } -> { a | selectedChatRoomId : b }
-setSelectedChatRoomId selectedChatRoomId record =
-    { record | selectedChatRoomId = selectedChatRoomId }
+selectedChatRoomIdLens : Lens { b | selectedChatRoomId : a } a
+selectedChatRoomIdLens =
+    Lens .selectedChatRoomId (\a b -> { b | selectedChatRoomId = a })
 
 
-setChatRoomIdToDelete : b -> { a | chatRoomIdToDelete : b } -> { a | chatRoomIdToDelete : b }
-setChatRoomIdToDelete chatRoomIdToDelete record =
-    { record | chatRoomIdToDelete = chatRoomIdToDelete }
+chatRoomIdToDeleteLens : Lens { b | chatRoomIdToDelete : a } a
+chatRoomIdToDeleteLens =
+    Lens .chatRoomIdToDelete (\a b -> { b | chatRoomIdToDelete = a })
 
 
-setNewChatRoomTitle : b -> { a | newChatRoomTitle : b } -> { a | newChatRoomTitle : b }
-setNewChatRoomTitle newChatRoomTitle record =
-    { record | newChatRoomTitle = newChatRoomTitle }
+newChatRoomTitleLens : Lens { b | newChatRoomTitle : a } a
+newChatRoomTitleLens =
+    Lens .newChatRoomTitle (\a b -> { b | newChatRoomTitle = a })

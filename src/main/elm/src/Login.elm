@@ -7,6 +7,7 @@ import Http
 import BusinessTypes exposing (..)
 import RestClient
 import Utils exposing (..)
+import Lens exposing (..)
 
 
 type Msg
@@ -38,35 +39,20 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeName name ->
-            let
-                newParticipant =
-                    model.participant |> setName name
-
-                newModel =
-                    model |> setParticipant newParticipant
-            in
-                ( newModel, Cmd.none )
+            ( (participantLens . nameLens).set name model, Cmd.none )
 
         PostParticipant participant ->
             ( model, RestClient.postParticipant model.participant PostParticipantResult )
 
         PostParticipantResult (Ok id) ->
-            let
-                newParticipant =
-                    model.participant |> setId id
-
-                newModel =
-                    model |> setParticipant newParticipant
-            in
-                ( newModel, toCmd (Login newParticipant) )
+            ( (participantLens . idLens).set id model, toCmd (Login (idLens.set id model.participant)) )
 
         PostParticipantResult (Err error) ->
-            ( model |> setError (toString error), Cmd.none )
+            ( model |> errorLens.set (toString error), Cmd.none )
 
         -- for external communication
         Login participant ->
             ( model, Cmd.none )
-
 
 
 view : Model -> Html Msg

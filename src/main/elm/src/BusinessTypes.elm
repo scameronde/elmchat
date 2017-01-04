@@ -1,5 +1,7 @@
 module BusinessTypes exposing (..)
 
+import Lens exposing (..)
+
 
 type alias Id =
     String
@@ -84,3 +86,43 @@ setMessageLog messageLog record =
 setError : b -> { a | error : b } -> { a | error : b }
 setError error record =
     { record | error = error }
+
+
+idLens : Lens { b | id : a } a
+idLens =
+    Lens .id (\a b -> { b | id = a })
+
+
+nameLens : Lens { b | name : a } a
+nameLens =
+    Lens .name (\a b -> { b | name = a })
+
+
+titleLens : Lens { b | title : a } a
+titleLens =
+    Lens .title (\a b -> { b | title = a })
+
+
+participantLens : Lens { a | participant : b } b
+participantLens =
+    Lens .participant (\a b -> { b | participant = a })
+
+
+chatRoomLens : Lens { b | chatRoom : a } a
+chatRoomLens =
+    Lens .chatRoom (\a b -> { b | chatRoom = a })
+
+
+messageLens : Lens { b | message : a } a
+messageLens =
+    Lens .message (\a b -> { b | message = a })
+
+
+messageLogLens : Lens { b | messageLog : a } a
+messageLogLens =
+    Lens .messageLog (\a b -> { b | messageLog = a })
+
+
+errorLens : Lens { b | error : a } a
+errorLens =
+    Lens .error (\a b -> { b | error = a })
