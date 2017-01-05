@@ -14,65 +14,44 @@ type Msg
     | ChatMsg Chat.Msg
 
 
-type ProgramState
-    = LoginState
-    | ChatState
-
-
-type alias Model =
-    { programState : ProgramState
-    , loginModel : Login.Model
-    , chatModel : Chat.Model
-    }
+type Model
+    = LoginModel Login.Model
+    | ChatModel Chat.Model
 
 
 init : ( Model, Cmd Msg )
 init =
-    let
-        loginInit =
-            Login.init
-
-        chatInit =
-            Chat.init
-    in
-        ( { programState = LoginState
-          , loginModel = first loginInit
-          , chatModel = first chatInit
-          }
-        , Cmd.batch
-            [ Cmd.map LoginMsg (second loginInit)
-            , Cmd.map ChatMsg (second chatInit)
-            ]
-        )
+    Login.init |> mapFirst LoginModel |> mapSecond (Cmd.map LoginMsg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        LoginMsg (Login.Login participant) ->
-            ( { model | programState = ChatState }
-            , toCmd (ChatMsg (Chat.Open participant))
-            )
+    case ( msg, model ) of
+        ( LoginMsg (Login.Login participant), LoginModel loginModel ) ->
+            Chat.init |> mapFirst ChatModel |> mapSecond (Cmd.map ChatMsg) |> mapSecond (\cmd -> Cmd.batch [ cmd, toCmd (ChatMsg (Chat.Open participant)) ])
 
-        LoginMsg subMsg ->
-            (Login.update subMsg model.loginModel)
-                |> mapFirst (\a -> { model | loginModel = a })
-                |> mapSecond (Cmd.map LoginMsg)
+        ( LoginMsg subMsg, LoginModel model ) ->
+            Login.update subMsg model |> mapFirst LoginModel |> mapSecond (Cmd.map LoginMsg)
 
-        ChatMsg subMsg ->
-            (Chat.update subMsg model.chatModel)
-                |> mapFirst (\a -> { model | chatModel = a })
-                |> mapSecond (Cmd.map ChatMsg)
+        ( ChatMsg subMsg, ChatModel model ) ->
+            Chat.update subMsg model |> mapFirst ChatModel |> mapSecond (Cmd.map ChatMsg)
+
+        ( x, y ) ->
+            let
+                _ =
+                    Debug.log "Stray found" x
+            in
+                ( model, Cmd.none )
 
 
 viewMainArea : Model -> Html Msg
 viewMainArea model =
-    case model.programState of
-        LoginState ->
-            Html.map LoginMsg (Login.view model.loginModel)
+    case model of
+        LoginModel model ->
+            Html.map LoginMsg (Login.view model)
 
-        ChatState ->
-            Html.map ChatMsg (Chat.view model.chatModel)
+        ChatModel model ->
+            Html.map ChatMsg (Chat.view model)
 
 
 view : Model -> Html Msg
@@ -87,12 +66,12 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.programState of
-        ChatState ->
-            Sub.map ChatMsg (Chat.subscriptions model.chatModel)
+    case model of
+        LoginModel model ->
+            Sub.map LoginMsg (Login.subscriptions model)
 
-        LoginState ->
-            Sub.map LoginMsg (Login.subscriptions model.loginModel)
+        ChatModel model ->
+            Sub.map ChatMsg (Chat.subscriptions model)
 
 
 
