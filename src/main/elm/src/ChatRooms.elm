@@ -51,7 +51,7 @@ update msg model =
     case msg of
         -- select or deselect a chat room
         SelectChatRoom id ->
-            selectChatRoom model (Just id)
+            selectChatRoom id model
 
         -- enter the title for a new chat room
         ChangeTitle title ->
@@ -74,10 +74,7 @@ update msg model =
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         GetChatRoomsResult (Ok chatRooms) ->
-            if (getChatRoom chatRooms model.selectedChatRoomId == Nothing) then
-                ( model |> chatRoomsLens.set (List.sortBy .title chatRooms) |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
-            else
-                ( model |> chatRoomsLens.set (List.sortBy .title chatRooms), Cmd.none )
+            updateChatRoomList chatRooms model
 
         GetChatRoomsResult (Err e) ->
             ( model, Cmd.none )
@@ -87,7 +84,7 @@ update msg model =
             ( model |> chatRoomIdToDeleteLens.set (Just id), Cmd.none )
 
         DeleteChatRoomAcknowledge ->
-            model.chatRoomIdToDelete |> Maybe.map (deleteChatRoom model) |> Maybe.withDefault ( model, Cmd.none )
+            deleteChatRoom model
 
         DeleteChatRoomCancel ->
             ( model |> chatRoomIdToDeleteLens.set Nothing, Cmd.none )
@@ -103,47 +100,69 @@ update msg model =
             ( model, Cmd.none )
 
 
-getChatRoom : List ChatRoom -> Maybe Id -> Maybe ChatRoom
-getChatRoom chatRooms id =
-    case id of
-        Just id ->
-            List.head <| List.filter (\chatRoom -> chatRoom.id == id) chatRooms
-
-        Nothing ->
-            Nothing
+findChatRoom : Id -> List ChatRoom -> Maybe ChatRoom
+findChatRoom id chatRooms =
+    List.filter (\chatRoom -> chatRoom.id == id) chatRooms |> List.head
 
 
-selectChatRoom : Model -> Maybe Id -> ( Model, Cmd Msg )
-selectChatRoom model id =
-    if (model.selectedChatRoomId == id) then
+selectChatRoom : Id -> Model -> ( Model, Cmd Msg )
+selectChatRoom id model =
+    if (model.selectedChatRoomId == Just id) then
         ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
     else
-        let
-            newModel =
-                model |> selectedChatRoomIdLens.set id
+        case findChatRoom id model.chatRooms of
+            Nothing ->
+                ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
 
-            newCmd =
-                getChatRoom model.chatRooms id |> Maybe.map (\x -> toCmd (Selected x)) |> Maybe.withDefault (toCmd Deselected)
-        in
-            ( newModel, newCmd )
+            Just chatRoom ->
+                ( model |> selectedChatRoomIdLens.set (Just id), toCmd (Selected chatRoom) )
 
 
-deleteChatRoom : Model -> Id -> ( Model, Cmd Msg )
-deleteChatRoom model id =
-    if (Just id == model.selectedChatRoomId) then
-        ( model |> chatRoomIdToDeleteLens.set Nothing
-        , Cmd.batch
-            [ toCmd Deselected
-            , RestClient.deleteChatRoom id DeleteChatRoomResult
-            ]
-        )
-    else
-        ( model |> chatRoomIdToDeleteLens.set Nothing
-        , RestClient.deleteChatRoom id DeleteChatRoomResult
-        )
+updateChatRoomList : List ChatRoom -> Model -> ( Model, Cmd Msg )
+updateChatRoomList chatRooms model =
+    let
+        newModel =
+            model |> chatRoomsLens.set (List.sortBy .title chatRooms)
+    in
+        case model.selectedChatRoomId of
+            Nothing ->
+                ( newModel, Cmd.none )
+
+            Just id ->
+                case findChatRoom id chatRooms of
+                    Nothing ->
+                        ( newModel |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
+
+                    Just chatRoom ->
+                        ( newModel, Cmd.none )
 
 
-rowClass : BusinessTypes.ChatRoom -> Model -> String
+deleteChatRoom : Model -> ( Model, Cmd Msg )
+deleteChatRoom model =
+    let
+        newModel =
+            model |> chatRoomIdToDeleteLens.set Nothing
+    in
+        case ( model.chatRoomIdToDelete, model.selectedChatRoomId ) of
+            ( Just idToDelete, Just selectedId ) ->
+                if idToDelete == selectedId then
+                    ( newModel |> selectedChatRoomIdLens.set Nothing
+                    , Cmd.batch
+                        [ toCmd Deselected
+                        , RestClient.deleteChatRoom idToDelete DeleteChatRoomResult
+                        ]
+                    )
+                else
+                    ( newModel, RestClient.deleteChatRoom idToDelete DeleteChatRoomResult )
+
+            ( Just idToDelete, Nothing ) ->
+                ( newModel, RestClient.deleteChatRoom idToDelete DeleteChatRoomResult )
+
+            ( Nothing, _ ) ->
+                ( newModel, Cmd.none )
+
+
+rowClass : ChatRoom -> Model -> String
 rowClass chatRoom model =
     if (model.selectedChatRoomId == Just chatRoom.id) then
         "info"
