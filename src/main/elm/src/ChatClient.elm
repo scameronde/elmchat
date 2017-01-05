@@ -21,37 +21,42 @@ type Model
 
 init : ( Model, Cmd Msg )
 init =
-    Login.init |> mapFirst LoginModel |> mapSecond (Cmd.map LoginMsg)
+    Login.init
+        |> mapFirst LoginModel
+        |> mapSecond (Cmd.map LoginMsg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
-        ( LoginMsg (Login.Login participant), LoginModel loginModel ) ->
-            Chat.init |> mapFirst ChatModel |> mapSecond (Cmd.map ChatMsg) |> mapSecond (\cmd -> Cmd.batch [ cmd, toCmd (ChatMsg (Chat.Open participant)) ])
+        ( LoginMsg (Login.Login participant), LoginModel model_ ) ->
+            Chat.init
+                |> mapFirst ChatModel
+                |> mapSecond (Cmd.map ChatMsg)
+                |> mapSecond (\cmd -> Cmd.batch [ cmd, toCmd (ChatMsg (Chat.Open participant)) ])
 
-        ( LoginMsg subMsg, LoginModel model ) ->
-            Login.update subMsg model |> mapFirst LoginModel |> mapSecond (Cmd.map LoginMsg)
+        ( LoginMsg msg_, LoginModel model_ ) ->
+            Login.update msg_ model_
+                |> mapFirst LoginModel
+                |> mapSecond (Cmd.map LoginMsg)
 
-        ( ChatMsg subMsg, ChatModel model ) ->
-            Chat.update subMsg model |> mapFirst ChatModel |> mapSecond (Cmd.map ChatMsg)
+        ( ChatMsg msg_, ChatModel model_ ) ->
+            Chat.update msg_ model_
+                |> mapFirst ChatModel
+                |> mapSecond (Cmd.map ChatMsg)
 
-        ( x, y ) ->
-            let
-                _ =
-                    Debug.log "Stray found" x
-            in
-                ( model, Cmd.none )
+        _ ->
+            Debug.crash "Stray combiniation of Model and Message found"
 
 
 viewMainArea : Model -> Html Msg
 viewMainArea model =
     case model of
-        LoginModel model ->
-            Html.map LoginMsg (Login.view model)
+        LoginModel model_ ->
+            Html.map LoginMsg (Login.view model_)
 
-        ChatModel model ->
-            Html.map ChatMsg (Chat.view model)
+        ChatModel model_ ->
+            Html.map ChatMsg (Chat.view model_)
 
 
 view : Model -> Html Msg
