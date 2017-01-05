@@ -3,11 +3,16 @@ module ChatClient exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Toolbox.Cmd exposing (..)
 import NavBar exposing (..)
 import Login
 import Chat
 
+{-| This is an example for a "sum type" module. A "sum type" module has no UI or logic by itself,
+but has children. It has only one child active at most at a time. It can switch between its children,
+depending on messages send by the active child.
+
+There is another type of aggregator module, the "product type" module. See Chat.elm for an example.
+-}
 
 type Msg
     = LoginMsg Login.Msg
@@ -30,10 +35,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
         ( LoginMsg (Login.Login participant), LoginModel model_ ) ->
-            Chat.init
+            Chat.init participant
                 |> mapFirst ChatModel
                 |> mapSecond (Cmd.map ChatMsg)
-                |> mapSecond (\cmd -> Cmd.batch [ cmd, toCmd (ChatMsg (Chat.Open participant)) ])
 
         ( LoginMsg msg_, LoginModel model_ ) ->
             Login.update msg_ model_
@@ -63,9 +67,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ viewNavBar model
-        , viewMain
-            [ div [ class "view-area" ] [ viewMainArea model ]
-            ]
+        , viewMain [ div [ class "view-area" ] [ viewMainArea model ] ]
         ]
 
 

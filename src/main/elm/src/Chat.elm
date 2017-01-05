@@ -1,4 +1,4 @@
-module Chat exposing (Msg(Open), Model, init, update, view, subscriptions)
+module Chat exposing (Msg, Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -9,21 +9,28 @@ import ChatRooms
 import ChatRoom
 
 
+{-| This is an example for a "product type" module. A "product type" module has no UI or logic by itself,
+but has children. The children are all active at the same time (usually displayed at the same time) and
+must be coordinated by the "product type" module.
+
+There is another type of aggregator module, the "sum type" module. See ChatClient.elm for an example.
+-}
+
+
 type Msg
-    = Open Participant
-    | ChatRoomsMsg ChatRooms.Msg
+    = ChatRoomsMsg ChatRooms.Msg
     | ChatRoomMsg ChatRoom.Msg
 
 
 type alias Model =
     { chatRoomsModel : ChatRooms.Model
     , chatRoomModel : ChatRoom.Model
-    , participant : Maybe Participant
+    , participant : Participant
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Participant -> ( Model, Cmd Msg )
+init participant =
     let
         chatRoomsInit =
             ChatRooms.init
@@ -33,7 +40,7 @@ init =
     in
         ( { chatRoomsModel = first chatRoomsInit
           , chatRoomModel = first chatRoomInit
-          , participant = Nothing
+          , participant = participant
           }
         , Cmd.batch
             [ Cmd.map ChatRoomsMsg (second chatRoomsInit)
@@ -45,27 +52,19 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Open participant ->
-            ( model |> setParticipant (Just participant), Cmd.none )
-
         ChatRoomsMsg (ChatRooms.Selected chatRoom) ->
-            case model.participant of
-                Just participant ->
-                    ( model, toCmd (ChatRoomMsg (ChatRoom.Open chatRoom participant)) )
-
-                _ ->
-                    ( model, toCmd (ChatRoomMsg ChatRoom.Close) )
+            ( model, toCmd (ChatRoomMsg (ChatRoom.Open chatRoom model.participant)) )
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
             ( model, toCmd (ChatRoomMsg ChatRoom.Close) )
 
-        ChatRoomsMsg subMsg ->
-            ChatRooms.update subMsg model.chatRoomsModel
+        ChatRoomsMsg msg_ ->
+            ChatRooms.update msg_ model.chatRoomsModel
                 |> mapFirst (\a -> { model | chatRoomsModel = a })
                 |> mapSecond (Cmd.map ChatRoomsMsg)
 
-        ChatRoomMsg subMsg ->
-            ChatRoom.update subMsg model.chatRoomModel
+        ChatRoomMsg msg_ ->
+            ChatRoom.update msg_ model.chatRoomModel
                 |> mapFirst (\a -> { model | chatRoomModel = a })
                 |> mapSecond (Cmd.map ChatRoomMsg)
 
