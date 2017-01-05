@@ -1,4 +1,4 @@
-module Utils exposing (toCmd)
+module Toolbox.Cmd exposing (toCmd)
 
 import Task
 

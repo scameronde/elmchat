@@ -7,8 +7,8 @@ import Dialog
 import Http
 import BusinessTypes exposing (..)
 import RestClient
-import Utils exposing (..)
-import Lens exposing (..)
+import Toolbox.Cmd exposing (..)
+import Toolbox.Lens exposing (..)
 import Time
 
 

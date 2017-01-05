@@ -1,6 +1,6 @@
 module BusinessTypes exposing (..)
 
-import Lens exposing (..)
+import Toolbox.Lens exposing (..)
 
 
 type alias Id =

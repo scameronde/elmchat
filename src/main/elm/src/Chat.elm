@@ -3,7 +3,7 @@ module Chat exposing (Msg(Open), Model, init, update, view, subscriptions)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Utils
+import Toolbox.Cmd exposing (..)
 import BusinessTypes exposing (..)
 import ChatRooms
 import ChatRoom
@@ -51,13 +51,13 @@ update msg model =
         ChatRoomsMsg (ChatRooms.Selected chatRoom) ->
             case model.participant of
                 Just participant ->
-                    ( model, Utils.toCmd (ChatRoomMsg (ChatRoom.Open chatRoom participant)) )
+                    ( model, toCmd (ChatRoomMsg (ChatRoom.Open chatRoom participant)) )
 
                 _ ->
-                    ( model, Utils.toCmd (ChatRoomMsg ChatRoom.Close) )
+                    ( model, toCmd (ChatRoomMsg ChatRoom.Close) )
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
-            ( model, Utils.toCmd (ChatRoomMsg ChatRoom.Close) )
+            ( model, toCmd (ChatRoomMsg ChatRoom.Close) )
 
         ChatRoomsMsg subMsg ->
             ChatRooms.update subMsg model.chatRoomsModel

@@ -1,4 +1,4 @@
-module Lens exposing (..)
+module Toolbox.Lens exposing (..)
 
 type alias Lens rec elem =
     { get : rec -> elem
@@ -16,3 +16,6 @@ type alias Lens rec elem =
             lensAB.get >> lensBC.get
     in
         Lens get set
+
+compose : Lens a b -> Lens b c -> Lens a c
+compose = (.)

@@ -3,7 +3,7 @@ module ChatClient exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Utils exposing (..)
+import Toolbox.Cmd exposing (..)
 import NavBar exposing (..)
 import Login
 import Chat
