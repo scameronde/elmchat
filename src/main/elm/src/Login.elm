@@ -39,16 +39,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeName name ->
-            ( (participantLens . nameLens).set name model, Cmd.none )
+            ( model |> (participantLens . nameLens).set name, Cmd.none )
 
         PostParticipant participant ->
             ( model, RestClient.postParticipant model.participant PostParticipantResult )
 
         PostParticipantResult (Ok id) ->
-            ( (participantLens . idLens).set id model, toCmd (Login (idLens.set id model.participant)) )
+            ( model |> (participantLens . idLens).set id, toCmd (Login (idLens.set id model.participant)) )
 
         PostParticipantResult (Err error) ->
-            ( errorLens.set (toString error) model, Cmd.none )
+            ( model |> errorLens.set (toString error), Cmd.none )
 
         -- for external communication
         Login participant ->

@@ -60,7 +60,7 @@ update msg model =
         -- add a new chat room
         PostChatRoom model ->
             ( model |> newChatRoomTitleLens.set ""
-            , RestClient.postChatRoom { id = "", title = model.newChatRoomTitle } PostChatRoomResult
+            , RestClient.postChatRoom (ChatRoom "" model.newChatRoomTitle) PostChatRoomResult
             )
 
         PostChatRoomResult (Ok id) ->

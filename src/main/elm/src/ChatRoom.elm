@@ -54,7 +54,7 @@ update msg model =
 
                 commands =
                     Cmd.batch
-                        [ WebSocketClient.sendRegistration <| ChatRegistration participant chatRoom
+                        [ WebSocketClient.sendRegistration (ChatRegistration participant chatRoom)
                         , RestClient.getChatRoom chatRoom.id SetChatHistory
                         ]
             in
@@ -67,7 +67,7 @@ update msg model =
             ( model |> messageLens.set message, Cmd.none )
 
         SendMessage message ->
-            ( model |> messageLens.set "", WebSocketClient.sendMessage <| BusinessTypes.Message message )
+            ( model |> messageLens.set "", WebSocketClient.sendMessage (Message message) )
 
         ReceivedMessage message ->
             ( model |> messageLogLens.set (model.messageLog ++ message), Cmd.none )
