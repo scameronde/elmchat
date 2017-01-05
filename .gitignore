@@ -1,6 +1,7 @@
 target
 .idea
 ChatClient.js
+DebugChatClient.js
 elm-stuff
 s101plugin.state
 Elm.js

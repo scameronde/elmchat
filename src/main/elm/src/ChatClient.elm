@@ -9,10 +9,6 @@ import Login
 import Chat
 
 
-type alias Flags =
-    { debug : Bool }
-
-
 type Msg
     = LoginMsg Login.Msg
     | ChatMsg Chat.Msg
@@ -27,12 +23,11 @@ type alias Model =
     { programState : ProgramState
     , loginModel : Login.Model
     , chatModel : Chat.Model
-    , debug : Bool
     }
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
+init : ( Model, Cmd Msg )
+init =
     let
         loginInit =
             Login.init
@@ -43,7 +38,6 @@ init flags =
         ( { programState = LoginState
           , loginModel = first loginInit
           , chatModel = first chatInit
-          , debug = flags.debug
           }
         , Cmd.batch
             [ Cmd.map LoginMsg (second loginInit)
@@ -87,10 +81,6 @@ view model =
         [ viewNavBar model
         , viewMain
             [ div [ class "view-area" ] [ viewMainArea model ]
-            , if model.debug then
-                div [ class "debug" ] [ text <| toString model ]
-              else
-                div [] []
             ]
         ]
 
@@ -109,9 +99,9 @@ subscriptions model =
 -- MAIN
 
 
-main : Program Flags Model Msg
+main : Program Never Model Msg
 main =
-    Html.programWithFlags
+    Html.program
         { init = init
         , update = update
         , view = view
