@@ -12,6 +12,9 @@ import Toolbox.Lens exposing (..)
 import Time
 
 
+-- MODEL
+
+
 type Msg
     = Selected ChatRoom
     | Deselected
@@ -32,6 +35,7 @@ type alias Model =
     , selectedChatRoomId : Maybe Id
     , chatRoomIdToDelete : Maybe Id
     , newChatRoomTitle : String
+    , error : String
     }
 
 
@@ -41,6 +45,7 @@ init =
       , selectedChatRoomId = Nothing
       , chatRoomIdToDelete = Nothing
       , newChatRoomTitle = ""
+      , error = ""
       }
     , RestClient.getChatRooms GetChatRoomsResult
     )
@@ -67,7 +72,7 @@ update msg model =
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         PostChatRoomResult (Err error) ->
-            ( model, Cmd.none )
+            ( model |> errorLens.set (toString error), Cmd.none )
 
         -- get available chat rooms
         GetChatRooms time ->
@@ -76,8 +81,8 @@ update msg model =
         GetChatRoomsResult (Ok chatRooms) ->
             updateChatRoomList chatRooms model
 
-        GetChatRoomsResult (Err e) ->
-            ( model, Cmd.none )
+        GetChatRoomsResult (Err error) ->
+            ( model |> errorLens.set (toString error), Cmd.none )
 
         -- delete chat room
         DeleteChatRoom id ->
@@ -160,6 +165,10 @@ deleteChatRoom model =
 
             ( Nothing, _ ) ->
                 ( newModel, Cmd.none )
+
+
+
+-- VIEW
 
 
 rowClass : ChatRoom -> Model -> String
@@ -251,6 +260,10 @@ view model =
         , viewNewChatRoom model
         , viewDialog model
         ]
+
+
+
+-- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
