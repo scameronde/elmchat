@@ -48,7 +48,7 @@ update msg model =
             ( (participantLens . idLens).set id model, toCmd (Login (idLens.set id model.participant)) )
 
         PostParticipantResult (Err error) ->
-            ( model |> errorLens.set (toString error), Cmd.none )
+            ( errorLens.set (toString error) model, Cmd.none )
 
         -- for external communication
         Login participant ->
