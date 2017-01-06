@@ -2,6 +2,7 @@ module Subscribe exposing (..)
 
 import Html exposing (..)
 import Time exposing (..)
+import Date exposing (..)
 
 type alias Model = Time
 
@@ -25,10 +26,10 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ span [] [text (toString model)]
+        [ span [] [text (model |> fromTime |> toString)]
         ]
 
-subscriptions model = Time.every second Tick
+subscriptions model = Time.every Time.second Tick
 
 main : Program Never Model Msg
 main =
