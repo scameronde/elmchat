@@ -3,7 +3,7 @@ module Chat exposing (Msg, Model, init, update, view, subscriptions)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Toolbox.Cmd exposing (..)
+import Toolbox.Lens exposing (..)
 import BusinessTypes exposing (..)
 import ChatRooms
 import ChatRoom
@@ -15,8 +15,6 @@ must be coordinated by the "product type" module.
 
 There is another type of aggregator module, the "sum type" module. See ChatClient.elm for an example.
 -}
-
-
 type Msg
     = ChatRoomsMsg ChatRooms.Msg
     | ChatRoomMsg ChatRoom.Msg
@@ -24,7 +22,7 @@ type Msg
 
 type alias Model =
     { chatRoomsModel : ChatRooms.Model
-    , chatRoomModel : ChatRoom.Model
+    , chatRoomModel : Maybe ChatRoom.Model
     , participant : Participant
     }
 
@@ -34,18 +32,12 @@ init participant =
     let
         chatRoomsInit =
             ChatRooms.init
-
-        chatRoomInit =
-            ChatRoom.init
     in
         ( { chatRoomsModel = first chatRoomsInit
-          , chatRoomModel = first chatRoomInit
+          , chatRoomModel = Nothing
           , participant = participant
           }
-        , Cmd.batch
-            [ Cmd.map ChatRoomsMsg (second chatRoomsInit)
-            , Cmd.map ChatRoomMsg (second chatRoomInit)
-            ]
+        , Cmd.map ChatRoomsMsg (second chatRoomsInit)
         )
 
 
@@ -53,10 +45,20 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChatRoomsMsg (ChatRooms.Selected chatRoom) ->
-            ( model, toCmd (ChatRoomMsg (ChatRoom.Open chatRoom model.participant)) )
+            let
+                chatRoomInit =
+                    ChatRoom.init model.participant chatRoom
+
+                newModel =
+                    model |> chatRoomModelLens.set (Just (first chatRoomInit))
+
+                newCmd =
+                    Cmd.map ChatRoomMsg (second chatRoomInit)
+            in
+                ( newModel, newCmd )
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
-            ( model, toCmd (ChatRoomMsg ChatRoom.Close) )
+            ( model |> chatRoomModelLens.set Nothing, Cmd.none )
 
         ChatRoomsMsg msg_ ->
             ChatRooms.update msg_ model.chatRoomsModel
@@ -64,9 +66,14 @@ update msg model =
                 |> mapSecond (Cmd.map ChatRoomsMsg)
 
         ChatRoomMsg msg_ ->
-            ChatRoom.update msg_ model.chatRoomModel
-                |> mapFirst (\a -> { model | chatRoomModel = a })
-                |> mapSecond (Cmd.map ChatRoomMsg)
+            case model.chatRoomModel of
+                Just model_ ->
+                    ChatRoom.update msg_ model_
+                        |> mapFirst (\a -> { model | chatRoomModel = Just a })
+                        |> mapSecond (Cmd.map ChatRoomMsg)
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -76,7 +83,12 @@ view model =
             [ Html.map ChatRoomsMsg (ChatRooms.view model.chatRoomsModel)
             ]
         , div [ class "col-md-6" ]
-            [ Html.map ChatRoomMsg (ChatRoom.view model.chatRoomModel)
+            [ case model.chatRoomModel of
+                Just model_ ->
+                    Html.map ChatRoomMsg (ChatRoom.view model_)
+
+                _ ->
+                    div [] []
             ]
         ]
 
@@ -85,5 +97,19 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map ChatRoomsMsg (ChatRooms.subscriptions model.chatRoomsModel)
-        , Sub.map ChatRoomMsg (ChatRoom.subscriptions model.chatRoomModel)
+        , case model.chatRoomModel of
+            Just model_ ->
+                Sub.map ChatRoomMsg (ChatRoom.subscriptions model_)
+
+            _ ->
+                Sub.none
         ]
+
+
+
+-- Lenses
+
+
+chatRoomModelLens : Lens { b | chatRoomModel : a } a
+chatRoomModelLens =
+    Lens .chatRoomModel (\a b -> { b | chatRoomModel = a })

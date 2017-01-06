@@ -1,4 +1,4 @@
-module ChatRoom exposing (Msg(Open, Close), Model, init, update, view, subscriptions)
+module ChatRoom exposing (Msg, Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -11,58 +11,39 @@ import BusinessTypes exposing (..)
 
 
 type Msg
-    = Open ChatRoom Participant
-    | Close
-    | SetChatHistory (Result Http.Error MessageLog)
+    = SetChatHistory (Result Http.Error MessageLog)
     | SetMessage String
     | SendMessage String
     | ReceivedMessage String
 
 
 type alias Model =
-    { participant : Maybe Participant
-    , chatRoom : Maybe ChatRoom
+    { participant : Participant
+    , chatRoom : ChatRoom
     , message : String
     , messageLog : String
     , error : String
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { participant = Nothing
-      , chatRoom = Nothing
+init : Participant -> ChatRoom -> ( Model, Cmd Msg )
+init participant chatRoom =
+    ( { participant = participant
+      , chatRoom = chatRoom
       , message = ""
       , messageLog = ""
       , error = ""
       }
-    , Cmd.none
+    , Cmd.batch
+        [ WebSocketClient.sendRegistration (ChatRegistration participant chatRoom)
+        , RestClient.getChatRoom chatRoom.id SetChatHistory
+        ]
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Open chatRoom participant ->
-            let
-                newModel =
-                    model
-                        |> participantLens.set (Just participant)
-                        |> chatRoomLens.set (Just chatRoom)
-                        |> messageLens.set ""
-                        |> messageLogLens.set ""
-
-                commands =
-                    Cmd.batch
-                        [ WebSocketClient.sendRegistration (ChatRegistration participant chatRoom)
-                        , RestClient.getChatRoom chatRoom.id SetChatHistory
-                        ]
-            in
-                ( newModel, commands )
-
-        Close ->
-            ( model |> participantLens.set Nothing |> chatRoomLens.set Nothing, Cmd.none )
-
         SetMessage message ->
             ( model |> messageLens.set message, Cmd.none )
 
@@ -81,26 +62,24 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case ( model.participant, model.chatRoom ) of
-        ( Just participant, Just chatRoom ) ->
-            div [ class "row" ]
-                [ h2 [] [ text chatRoom.title ]
-                , textarea [ class "col-md-12", rows 20, style [ ( "width", "100%" ) ], value model.messageLog ] []
-                , Html.form [ class "form-inline", onSubmit (SendMessage model.message) ]
-                    [ input [ type_ "text", class "form-control", size 30, placeholder <| participant.name ++ ": Enter message", value model.message, onInput SetMessage ] []
-                    , button [ class "btn btn-primary" ] [ text "Send" ]
-                    ]
+    div [ class "row" ]
+        [ h2 [] [ text model.chatRoom.title ]
+        , textarea [ class "col-md-12", rows 20, style [ ( "width", "100%" ) ], value model.messageLog ] []
+        , Html.form [ class "form-inline", onSubmit (SendMessage model.message) ]
+            [ input
+                [ type_ "text"
+                , class "form-control"
+                , size 30
+                , placeholder <| model.participant.name ++ ": Enter message"
+                , value model.message
+                , onInput SetMessage
                 ]
-
-        _ ->
-            div [] []
+                []
+            , button [ class "btn btn-primary" ] [ text "Send" ]
+            ]
+        ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case ( model.participant, model.chatRoom ) of
-        ( Just participant, Just chatRoom ) ->
-            WebSocket.listen "ws://localhost:4567/chat" ReceivedMessage
-
-        _ ->
-            Sub.none
+    WebSocket.listen "ws://localhost:4567/chat" ReceivedMessage
