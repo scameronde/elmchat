@@ -7,13 +7,13 @@ import NavBar exposing (..)
 import Login
 import Chat
 
+
 {-| This is an example for a "sum type" module. A "sum type" module has no UI or logic by itself,
 but has children. It has only one child active at most at a time. It can switch between its children,
 depending on messages send by the active child.
 
 There is another type of aggregator module, the "product type" module. See Chat.elm for an example.
 -}
-
 type Msg
     = LoginMsg Login.Msg
     | ChatMsg Chat.Msg
@@ -50,7 +50,7 @@ update msg model =
                 |> mapSecond (Cmd.map ChatMsg)
 
         _ ->
-            Debug.crash "Stray combiniation of Model and Message found"
+            Debug.log "Stray combiniation of Model and Message found" ( model, Cmd.none )
 
 
 viewMainArea : Model -> Html Msg

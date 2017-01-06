@@ -18,18 +18,18 @@ type Msg
 
 
 type alias Model =
-    { error : String
-    , participant : Participant
+    { participant : Participant
+    , error : String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { error = ""
-      , participant =
+    ( { participant =
             { id = ""
             , name = ""
             }
+      , error = ""
       }
     , Cmd.none
     )

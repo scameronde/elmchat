@@ -3,7 +3,6 @@ module Chat exposing (Msg, Model, init, update, view, subscriptions)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Tuple exposing (..)
-import Toolbox.Lens exposing (..)
 import BusinessTypes exposing (..)
 import ChatRooms
 import ChatRoom
@@ -50,7 +49,7 @@ update msg model =
                     ChatRoom.init model.participant chatRoom
 
                 newModel =
-                    model |> chatRoomModelLens.set (Just (first chatRoomInit))
+                    { model | chatRoomModel = Just (first chatRoomInit) }
 
                 newCmd =
                     Cmd.map ChatRoomMsg (second chatRoomInit)
@@ -58,7 +57,7 @@ update msg model =
                 ( newModel, newCmd )
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
-            ( model |> chatRoomModelLens.set Nothing, Cmd.none )
+            ( { model | chatRoomModel = Nothing }, Cmd.none )
 
         ChatRoomsMsg msg_ ->
             ChatRooms.update msg_ model.chatRoomsModel
@@ -104,12 +103,3 @@ subscriptions model =
             _ ->
                 Sub.none
         ]
-
-
-
--- Lenses
-
-
-chatRoomModelLens : Lens { b | chatRoomModel : a } a
-chatRoomModelLens =
-    Lens .chatRoomModel (\a b -> { b | chatRoomModel = a })
