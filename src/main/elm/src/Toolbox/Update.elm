@@ -19,5 +19,4 @@ insteadDo cmd r =
 
 
 modify : (model -> model) -> ( model, Cmd msg ) -> (model, Cmd msg)
-modify f r =
-    ( (first r) |> f, second r )
+modify = mapFirst
