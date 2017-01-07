@@ -3,8 +3,8 @@ module Toolbox.Update exposing (..)
 import Tuple exposing (..)
 
 
-adapt : (modelA -> modelB) -> (msgA -> msgB) -> ( modelA, Cmd msgA ) -> ( modelB, Cmd msgB )
-adapt f g r =
+map : (modelA -> modelB) -> (msgA -> msgB) -> ( modelA, Cmd msgA ) -> ( modelB, Cmd msgB )
+map f g r =
     ( first r |> f, Cmd.map g (second r) )
 
 

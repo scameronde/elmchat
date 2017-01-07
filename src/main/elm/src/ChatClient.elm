@@ -27,7 +27,7 @@ type Model
 init : ( Model, Cmd Msg )
 init =
     Login.init
-        |> Update.adapt LoginModel LoginMsg
+        |> Update.map LoginModel LoginMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -35,15 +35,15 @@ update msg model =
     case ( msg, model ) of
         ( LoginMsg (Login.Login participant), LoginModel model_ ) ->
             Chat.init participant
-                |> Update.adapt ChatModel ChatMsg
+                |> Update.map ChatModel ChatMsg
 
         ( LoginMsg msg_, LoginModel model_ ) ->
             Login.update msg_ model_
-                |> Update.adapt LoginModel LoginMsg
+                |> Update.map LoginModel LoginMsg
 
         ( ChatMsg msg_, ChatModel model_ ) ->
             Chat.update msg_ model_
-                |> Update.adapt ChatModel ChatMsg
+                |> Update.map ChatModel ChatMsg
 
         _ ->
             Debug.log "Stray combiniation of Model and Message found" ( model, Cmd.none )

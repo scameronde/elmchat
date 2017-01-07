@@ -2,7 +2,7 @@ module Chat exposing (Msg, Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Tuple exposing (..)
+import Toolbox.Update as Update
 import BusinessTypes exposing (..)
 import ChatRooms
 import ChatRoom
@@ -20,56 +20,37 @@ type Msg
 
 
 type alias Model =
-    { chatRoomsModel : ChatRooms.Model
-    , chatRoomModel : Maybe ChatRoom.Model
+    { chatRoomModel : Maybe ChatRoom.Model
     , participant : Participant
+    , chatRoomsModel : ChatRooms.Model
     }
 
 
 init : Participant -> ( Model, Cmd Msg )
 init participant =
-    let
-        chatRoomsInit =
-            ChatRooms.init
-    in
-        ( { chatRoomsModel = first chatRoomsInit
-          , chatRoomModel = Nothing
-          , participant = participant
-          }
-        , Cmd.map ChatRoomsMsg (second chatRoomsInit)
-        )
+    ChatRooms.init
+        |> Update.map (Model Nothing participant) ChatRoomsMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChatRoomsMsg (ChatRooms.Selected chatRoom) ->
-            let
-                chatRoomInit =
-                    ChatRoom.init model.participant chatRoom
-
-                newModel =
-                    { model | chatRoomModel = Just (first chatRoomInit) }
-
-                newCmd =
-                    Cmd.map ChatRoomMsg (second chatRoomInit)
-            in
-                ( newModel, newCmd )
+            ChatRoom.init model.participant chatRoom
+                |> Update.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
             ( { model | chatRoomModel = Nothing }, Cmd.none )
 
         ChatRoomsMsg msg_ ->
             ChatRooms.update msg_ model.chatRoomsModel
-                |> mapFirst (\a -> { model | chatRoomsModel = a })
-                |> mapSecond (Cmd.map ChatRoomsMsg)
+                |> Update.map (\a -> { model | chatRoomsModel = a }) ChatRoomsMsg
 
         ChatRoomMsg msg_ ->
             case model.chatRoomModel of
                 Just model_ ->
                     ChatRoom.update msg_ model_
-                        |> mapFirst (\a -> { model | chatRoomModel = Just a })
-                        |> mapSecond (Cmd.map ChatRoomMsg)
+                        |> Update.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
 
                 _ ->
                     ( model, Cmd.none )
