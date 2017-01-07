@@ -28,17 +28,15 @@ type alias Model =
 
 init : Participant -> ChatRoom -> ( Model, Cmd Msg )
 init participant chatRoom =
-    ( { participant = participant
-      , chatRoom = chatRoom
-      , message = ""
-      , messageLog = ""
-      , error = ""
-      }
-    , Cmd.batch
-        [ WebSocketClient.sendRegistration (ChatRegistration participant chatRoom)
-        , RestClient.getChatRoom chatRoom.id SetChatHistory
-        ]
-    )
+    { participant = participant
+    , chatRoom = chatRoom
+    , message = ""
+    , messageLog = ""
+    , error = ""
+    }
+        ! [ WebSocketClient.sendRegistration (ChatRegistration participant chatRoom)
+          , RestClient.getChatRoom chatRoom.id SetChatHistory
+          ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
