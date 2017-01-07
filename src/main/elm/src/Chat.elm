@@ -20,16 +20,23 @@ type Msg
 
 
 type alias Model =
-    { chatRoomModel : Maybe ChatRoom.Model
+    { chatRoomsModel : ChatRooms.Model
+    , chatRoomModel : Maybe ChatRoom.Model
     , participant : Participant
-    , chatRoomsModel : ChatRooms.Model
     }
 
 
 init : Participant -> ( Model, Cmd Msg )
 init participant =
     ChatRooms.init
-        |> Update.map (Model Nothing participant) ChatRoomsMsg
+        |> Update.map
+            (\chatRooms ->
+                { chatRoomsModel = chatRooms
+                , chatRoomModel = Nothing
+                , participant = participant
+                }
+            )
+            ChatRoomsMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
