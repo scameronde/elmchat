@@ -15,6 +15,13 @@ import Time
 -- MODEL
 
 
+type RemoteData e a
+    = NotAsked
+    | Loading
+    | Success a
+    | Failure e
+
+
 type Msg
     = Selected ChatRoom
     | Deselected
@@ -31,7 +38,7 @@ type Msg
 
 
 type alias Model =
-    { chatRooms : List ChatRoom
+    { chatRooms : RemoteData String (List ChatRoom)
     , selectedChatRoomId : Maybe Id
     , chatRoomIdToDelete : Maybe Id
     , newChatRoomTitle : String
@@ -41,7 +48,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { chatRooms = []
+    ( { chatRooms = NotAsked
       , selectedChatRoomId = Nothing
       , chatRoomIdToDelete = Nothing
       , newChatRoomTitle = ""
@@ -72,17 +79,28 @@ update msg model =
             ( model, RestClient.getChatRooms GetChatRoomsResult )
 
         PostChatRoomResult (Err error) ->
-            ( model |> errorLens.set (toString error), Cmd.none )
+            ( model
+                |> errorLens.set (toString error)
+                |> selectedChatRoomIdLens.set Nothing
+                |> chatRoomIdToDeleteLens.set Nothing
+            , toCmd Deselected
+            )
 
         -- get available chat rooms
         GetChatRooms time ->
-            ( model, RestClient.getChatRooms GetChatRoomsResult )
+            ( model |> chatRoomsLens.set Loading, RestClient.getChatRooms GetChatRoomsResult )
 
         GetChatRoomsResult (Ok chatRooms) ->
             updateChatRoomList chatRooms model
 
         GetChatRoomsResult (Err error) ->
-            ( model |> errorLens.set (toString error), Cmd.none )
+            ( model
+                |> errorLens.set (toString error)
+                |> chatRoomsLens.set (Failure (toString error))
+                |> selectedChatRoomIdLens.set Nothing
+                |> chatRoomIdToDeleteLens.set Nothing
+            , toCmd Deselected
+            )
 
         -- delete chat room
         DeleteChatRoom id ->
@@ -115,19 +133,24 @@ selectChatRoom id model =
     if (model.selectedChatRoomId == Just id) then
         ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
     else
-        case findChatRoom id model.chatRooms of
-            Nothing ->
-                ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
+        case model.chatRooms of
+            Success chatRooms ->
+                case findChatRoom id chatRooms of
+                    Nothing ->
+                        ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
 
-            Just chatRoom ->
-                ( model |> selectedChatRoomIdLens.set (Just id), toCmd (Selected chatRoom) )
+                    Just chatRoom ->
+                        ( model |> selectedChatRoomIdLens.set (Just id), toCmd (Selected chatRoom) )
+
+            _ ->
+                ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
 
 
 updateChatRoomList : List ChatRoom -> Model -> ( Model, Cmd Msg )
 updateChatRoomList chatRooms model =
     let
         newModel =
-            model |> chatRoomsLens.set (List.sortBy .title chatRooms)
+            model |> chatRoomsLens.set (Success (List.sortBy .title chatRooms))
     in
         case model.selectedChatRoomId of
             Nothing ->
@@ -171,16 +194,16 @@ deleteChatRoom model =
 -- VIEW
 
 
-rowClass : ChatRoom -> Model -> String
-rowClass chatRoom model =
-    if (model.selectedChatRoomId == Just chatRoom.id) then
+rowClass : ChatRoom -> Maybe Id -> String
+rowClass chatRoom selection =
+    if (selection == Just chatRoom.id) then
         "info"
     else
         ""
 
 
-viewChatRooms : Model -> Html Msg
-viewChatRooms model =
+viewChatRooms : List ChatRoom -> Maybe Id -> Html Msg
+viewChatRooms chatRooms selection =
     table [ class "table table-striped table-hover" ]
         [ thead []
             [ tr []
@@ -189,20 +212,20 @@ viewChatRooms model =
                 ]
             ]
         , tbody []
-            (List.map
-                (\chatRoom ->
-                    tr [ class (rowClass chatRoom model) ]
-                        [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ]
-                        , td []
-                            [ button
-                                [ class "btn btn-danger btn-xs"
-                                , onClick (DeleteChatRoom chatRoom.id)
+            (chatRooms
+                |> List.map
+                    (\chatRoom ->
+                        tr [ class (rowClass chatRoom selection) ]
+                            [ td [ onClick (SelectChatRoom chatRoom.id) ] [ text chatRoom.title ]
+                            , td []
+                                [ button
+                                    [ class "btn btn-danger btn-xs"
+                                    , onClick (DeleteChatRoom chatRoom.id)
+                                    ]
+                                    [ text "X" ]
                                 ]
-                                [ text "X" ]
                             ]
-                        ]
-                )
-                model.chatRooms
+                    )
             )
         ]
 
@@ -256,7 +279,18 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Chat Room Selection" ]
-        , viewChatRooms model
+        , case model.chatRooms of
+            Success chatRooms ->
+                viewChatRooms chatRooms model.selectedChatRoomId
+
+            Failure error ->
+                div [] [ text "ERROR!" ]
+
+            NotAsked ->
+                div [] [ text "not asked" ]
+
+            Loading ->
+                div [] [ text "loading ..." ]
         , viewNewChatRoom model
         , viewDialog model
         ]
