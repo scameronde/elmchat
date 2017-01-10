@@ -35,6 +35,12 @@ public class InMemoryRepository implements Repository {
 
   @Override
   public List<ChatRoom> getChatRooms() {
+    try {
+      Thread.sleep(1);
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();  // TODO: handle exception
+    }
     return chatRooms;
   }
 
