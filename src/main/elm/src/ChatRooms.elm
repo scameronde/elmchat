@@ -17,7 +17,7 @@ import Time
 
 type RemoteData e a
     = NotAsked
-    | Loading
+    | Loading a
     | Success a
     | Failure e
 
@@ -88,7 +88,22 @@ update msg model =
 
         -- get available chat rooms
         GetChatRooms time ->
-            ( model |> chatRoomsLens.set Loading, RestClient.getChatRooms GetChatRoomsResult )
+            ( model
+                |> chatRoomsLens.set
+                    (Loading
+                        (case model.chatRooms of
+                            Success a ->
+                                a
+
+                            Loading a ->
+                                a
+
+                            _ ->
+                                []
+                        )
+                    )
+            , RestClient.getChatRooms GetChatRoomsResult
+            )
 
         GetChatRoomsResult (Ok chatRooms) ->
             updateChatRoomList chatRooms model
@@ -134,16 +149,24 @@ selectChatRoom id model =
         ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
     else
         case model.chatRooms of
-            Success chatRooms ->
-                case findChatRoom id chatRooms of
-                    Nothing ->
-                        ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
+            Loading chatRooms ->
+                selectFromAvailableChatRoom id chatRooms model
 
-                    Just chatRoom ->
-                        ( model |> selectedChatRoomIdLens.set (Just id), toCmd (Selected chatRoom) )
+            Success chatRooms ->
+                selectFromAvailableChatRoom id chatRooms model
 
             _ ->
                 ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
+
+
+selectFromAvailableChatRoom : Id -> List ChatRoom -> Model -> ( Model, Cmd Msg )
+selectFromAvailableChatRoom id chatRooms model =
+    case findChatRoom id chatRooms of
+        Nothing ->
+            ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
+
+        Just chatRoom ->
+            ( model |> selectedChatRoomIdLens.set (Just id), toCmd (Selected chatRoom) )
 
 
 updateChatRoomList : List ChatRoom -> Model -> ( Model, Cmd Msg )
@@ -281,7 +304,10 @@ view model =
         [ h2 [] [ text "Chat Room Selection" ]
         , case model.chatRooms of
             Success chatRooms ->
-                viewChatRooms chatRooms model.selectedChatRoomId
+                div []
+                    [ text "OK"
+                    , viewChatRooms chatRooms model.selectedChatRoomId
+                    ]
 
             Failure error ->
                 div [] [ text "ERROR!" ]
@@ -289,8 +315,11 @@ view model =
             NotAsked ->
                 div [] [ text "not asked" ]
 
-            Loading ->
-                div [] [ text "loading ..." ]
+            Loading chatRooms ->
+                div []
+                    [ text "loading ..."
+                    , viewChatRooms chatRooms model.selectedChatRoomId
+                    ]
         , viewNewChatRoom model
         , viewDialog model
         ]
