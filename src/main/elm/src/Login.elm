@@ -12,25 +12,20 @@ import Toolbox.Lens exposing (..)
 
 type Msg
     = Login Participant
-    | PostParticipant Participant
-    | PostParticipantResult (Result Http.Error Id)
+    | GetParticipant String
+    | GetParticipantResult (Result Http.Error Participant)
     | ChangeName String
 
 
 type alias Model =
-    { participant : Participant
+    { name : String
     , error : String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { participant =
-            { id = ""
-            , name = ""
-            }
-      , error = ""
-      }
+    ( {name = "", error = ""}
     , Cmd.none
     )
 
@@ -39,15 +34,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeName name ->
-            ( model |> (participantLens . nameLens).set name, Cmd.none )
+            ( model |> nameLens.set name, Cmd.none )
 
-        PostParticipant participant ->
-            ( model, RestClient.postParticipant model.participant PostParticipantResult )
+        GetParticipant participant ->
+            ( model, RestClient.getParticipant model.name GetParticipantResult )
 
-        PostParticipantResult (Ok id) ->
-            ( model |> (participantLens . idLens).set id, toCmd (Login (idLens.set id model.participant)) )
+        GetParticipantResult (Ok participant) ->
+            ( model , toCmd (Login participant) )
 
-        PostParticipantResult (Err error) ->
+        GetParticipantResult (Err error) ->
             ( model |> errorLens.set (toString error), Cmd.none )
 
         -- for external communication
@@ -57,7 +52,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.form [ onSubmit (PostParticipant model.participant) ]
+    Html.form [ onSubmit (GetParticipant model.name) ]
         [ div [ class "form-group" ]
             [ label [ for "nameInput" ] [ text "Your name" ]
             , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []

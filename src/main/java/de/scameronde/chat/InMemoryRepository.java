@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import de.scameronde.chat.businesstypes.ChatRoom;
 import de.scameronde.chat.businesstypes.MessageLog;
@@ -23,6 +24,18 @@ public class InMemoryRepository implements Repository {
     chatRooms.add(chatRoom2);
     logs.put(chatRoom1, "");
     logs.put(chatRoom2, "");
+    participants.add(new Participant("", "Homer"));
+    participants.add(new Participant("", "Marge"));
+    participants.add(new Participant("", "Maggie"));
+    participants.add(new Participant("", "Bart"));
+    participants.add(new Participant("", "Lisa"));
+    participants.add(new Participant("", "Burns"));
+    participants.add(new Participant("", "Smithers"));
+    participants.add(new Participant("", "Ned"));
+    participants.add(new Participant("", "Rod"));
+    participants.add(new Participant("", "Todd"));
+    participants.add(new Participant("", "Leny"));
+    participants.add(new Participant("", "Carl"));
   }
 
   @Override
@@ -31,6 +44,13 @@ public class InMemoryRepository implements Repository {
     participant.setId(id);
     participants.add(participant);
     return id;
+  }
+
+  @Override
+  public Optional<Participant> login(String participantName) {
+    return participants.stream()
+                       .filter(p -> p.getName().equals(participantName))
+                       .findFirst();
   }
 
   @Override

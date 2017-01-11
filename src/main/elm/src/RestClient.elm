@@ -1,8 +1,17 @@
-module RestClient exposing (postParticipant, postChatRoom, getChatRoom, getChatRooms, deleteChatRoom)
+module RestClient exposing (getParticipant, postChatRoom, getChatRoom, getChatRooms, deleteChatRoom)
 
 import Http
 import BusinessTypes
 import Json
+
+
+getParticipant : String -> (Result Http.Error BusinessTypes.Participant -> msg) -> Cmd msg
+getParticipant participantName msg =
+    let
+        getParticipantRequest =
+            Http.get ("http://localhost:4567/participant/" ++ participantName) Json.decodeParticipant
+    in
+        Http.send msg getParticipantRequest
 
 
 postParticipant : BusinessTypes.Participant -> (Result Http.Error BusinessTypes.Id -> msg) -> Cmd msg

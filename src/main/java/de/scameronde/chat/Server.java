@@ -16,7 +16,6 @@ import de.scameronde.chat.businesstypes.MessageLog;
 import de.scameronde.chat.businesstypes.Participant;
 
 import javaslang.control.Either;
-import javaslang.control.Option;
 import spark.Request;
 import spark.Response;
 
@@ -61,7 +60,7 @@ public class Server {
       Either<Exception, Participant> participant = jsonToData(request.body(), Participant.class);
       if (participant.isRight()) {
         String id = repository.addParticipant(participant.get());
-        Either<Exception, String> jsonId = participant.map(p -> '"'+id+'"');
+        Either<Exception, String> jsonId = participant.map(p -> '"' + id + '"');
         return createResponse(response, jsonId);
       }
       else {
@@ -69,12 +68,20 @@ public class Server {
       }
     }));
 
+    // gets the Id of an existing participant. A poor mans login.
+    get("/participant/:participantName", ((request, response) -> {
+      String participantName = getParameter(request, ":participantName");
+      Optional<Participant> knownParticipant = repository.login(participantName);
+      Either<Exception, Optional<String>> result = dataToJson(knownParticipant);
+      return createOptionalResponse(response, result);
+    }));
+
     // make a chat room known to the system and return its id back to the caller
     post("/chatRoom", ((request, response) -> {
       Either<Exception, ChatRoom> chatRoom = jsonToData(request.body(), ChatRoom.class);
       if (chatRoom.isRight()) {
         String id = repository.addChatRoom(chatRoom.get());
-        Either<Exception, String> jsonId = chatRoom.map(c -> '"'+id+'"');
+        Either<Exception, String> jsonId = chatRoom.map(c -> '"' + id + '"');
         return createResponse(response, jsonId);
       }
       else {
