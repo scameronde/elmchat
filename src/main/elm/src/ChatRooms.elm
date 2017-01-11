@@ -219,36 +219,28 @@ deleteChatRoom model =
 
 viewChatRooms : Model -> Html Msg
 viewChatRooms model =
-    case model.chatRooms of
-        NotAsked ->
-            div []
-                [ text "not asked"
-                , viewChatRoomList [] Nothing
-                ]
+    let
+        ( txt, list, selection ) =
+            case model.chatRooms of
+                NotAsked ->
+                    ( "not asked", [], Nothing )
 
-        Loading ->
-            div []
-                [ text "loading ..."
-                , viewChatRoomList [] Nothing
-                ]
+                Loading ->
+                    ( "loading ...", [], Nothing )
 
-        Updating a ->
-            div []
-                [ text "loading ..."
-                , viewChatRoomList a model.selectedChatRoomId
-                ]
+                Updating a ->
+                    ( "updating ...", a, model.selectedChatRoomId )
 
-        Success a ->
-            div []
-                [ text "OK"
-                , viewChatRoomList a model.selectedChatRoomId
-                ]
+                Success a ->
+                    ( "OK", a, model.selectedChatRoomId )
 
-        Failure e ->
-            div []
-                [ text ("Error: " ++ e)
-                , viewChatRoomList [] Nothing
-                ]
+                Failure e ->
+                    ( "Error: " ++ e, [], Nothing )
+    in
+        div []
+            [ text txt
+            , viewChatRoomList list selection
+            ]
 
 
 viewChatRoomList : List ChatRoom -> Maybe Id -> Html Msg
