@@ -15,9 +15,10 @@ import Time
 -- MODEL
 
 
-type RemoteData e a
+type RemoteRefreshingData e a
     = NotAsked
     | Loading
+    | Updating a
     | Success a
     | Failure e
 
@@ -38,8 +39,7 @@ type Msg
 
 
 type alias Model =
-    { chatRooms : List ChatRoom
-    , loadingChatRooms : RemoteData String (List ChatRoom)
+    { chatRooms : RemoteRefreshingData String (List ChatRoom)
     , selectedChatRoomId : Maybe Id
     , chatRoomIdToDelete : Maybe Id
     , newChatRoomTitle : String
@@ -49,8 +49,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { chatRooms = []
-      , loadingChatRooms = NotAsked
+    ( { chatRooms = NotAsked
       , selectedChatRoomId = Nothing
       , chatRoomIdToDelete = Nothing
       , newChatRoomTitle = ""
@@ -78,7 +77,7 @@ update msg model =
             )
 
         PostChatRoomResult (Ok id) ->
-            ( model, RestClient.getChatRooms GetChatRoomsResult )
+            ( model |> errorLens.set "", RestClient.getChatRooms GetChatRoomsResult )
 
         PostChatRoomResult (Err error) ->
             ( model
@@ -90,7 +89,20 @@ update msg model =
 
         -- get available chat rooms
         GetChatRooms time ->
-            ( model |> loadingChatRoomsLens.set Loading, RestClient.getChatRooms GetChatRoomsResult )
+            ( model
+                |> chatRoomsLens.set
+                    (case model.chatRooms of
+                        Success a ->
+                            Updating a
+
+                        Updating a ->
+                            Updating a
+
+                        _ ->
+                            Loading
+                    )
+            , RestClient.getChatRooms GetChatRoomsResult
+            )
 
         GetChatRoomsResult (Ok chatRooms) ->
             updateChatRoomList chatRooms model
@@ -98,8 +110,7 @@ update msg model =
         GetChatRoomsResult (Err error) ->
             ( model
                 |> errorLens.set (toString error)
-                |> loadingChatRoomsLens.set (Failure (toString error))
-                |> chatRoomsLens.set []
+                |> chatRoomsLens.set (Failure (toString error))
                 |> selectedChatRoomIdLens.set Nothing
                 |> chatRoomIdToDeleteLens.set Nothing
             , toCmd Deselected
@@ -136,12 +147,12 @@ selectChatRoom id model =
     if (model.selectedChatRoomId == Just id) then
         ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
     else
-        case model.loadingChatRooms of
-            Loading ->
-                selectFromAvailableChatRoom id model.chatRooms model
+        case model.chatRooms of
+            Updating a ->
+                selectFromAvailableChatRoom id a model
 
-            Success _ ->
-                selectFromAvailableChatRoom id model.chatRooms model
+            Success a ->
+                selectFromAvailableChatRoom id a model
 
             _ ->
                 ( model |> selectedChatRoomIdLens.set Nothing, toCmd Deselected )
@@ -161,8 +172,8 @@ updateChatRoomList : List ChatRoom -> Model -> ( Model, Cmd Msg )
 updateChatRoomList chatRooms model =
     let
         newModel =
-            model |> loadingChatRoomsLens.set (Success (List.sortBy .title chatRooms))
-                  |> chatRoomsLens.set (List.sortBy .title chatRooms)
+            model
+                |> chatRoomsLens.set (Success (List.sortBy .title chatRooms))
     in
         case model.selectedChatRoomId of
             Nothing ->
@@ -206,16 +217,42 @@ deleteChatRoom model =
 -- VIEW
 
 
-rowClass : ChatRoom -> Maybe Id -> String
-rowClass chatRoom selection =
-    if (selection == Just chatRoom.id) then
-        "info"
-    else
-        ""
+viewChatRooms : Model -> Html Msg
+viewChatRooms model =
+    case model.chatRooms of
+        NotAsked ->
+            div []
+                [ text "not asked"
+                , viewChatRoomList [] Nothing
+                ]
+
+        Loading ->
+            div []
+                [ text "loading ..."
+                , viewChatRoomList [] Nothing
+                ]
+
+        Updating a ->
+            div []
+                [ text "loading ..."
+                , viewChatRoomList a model.selectedChatRoomId
+                ]
+
+        Success a ->
+            div []
+                [ text "OK"
+                , viewChatRoomList a model.selectedChatRoomId
+                ]
+
+        Failure e ->
+            div []
+                [ text ("Error: " ++ e)
+                , viewChatRoomList [] Nothing
+                ]
 
 
-viewChatRooms : List ChatRoom -> Maybe Id -> Html Msg
-viewChatRooms chatRooms selection =
+viewChatRoomList : List ChatRoom -> Maybe Id -> Html Msg
+viewChatRoomList chatRooms selection =
     table [ class "table table-striped table-hover" ]
         [ thead []
             [ tr []
@@ -240,6 +277,14 @@ viewChatRooms chatRooms selection =
                     )
             )
         ]
+
+
+rowClass : ChatRoom -> Maybe Id -> String
+rowClass chatRoom selection =
+    if (selection == Just chatRoom.id) then
+        "info"
+    else
+        ""
 
 
 viewNewChatRoom : Model -> Html Msg
@@ -291,24 +336,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Chat Room Selection" ]
-        , case model.loadingChatRooms of
-            Success _ ->
-                div []
-                    [ text "OK"
-                    , viewChatRooms model.chatRooms model.selectedChatRoomId
-                    ]
-
-            Failure error ->
-                div [] [ text "ERROR!" ]
-
-            NotAsked ->
-                div [] [ text "not asked" ]
-
-            Loading ->
-                div []
-                    [ text "loading ..."
-                    , viewChatRooms model.chatRooms model.selectedChatRoomId
-                    ]
+        , viewChatRooms model
         , viewNewChatRoom model
         , viewDialog model
         ]
@@ -330,11 +358,6 @@ subscriptions model =
 chatRoomsLens : Lens { b | chatRooms : a } a
 chatRoomsLens =
     Lens .chatRooms (\a b -> { b | chatRooms = a })
-
-
-loadingChatRoomsLens : Lens { b | loadingChatRooms : a } a
-loadingChatRoomsLens =
-    Lens .loadingChatRooms (\a b -> { b | loadingChatRooms = a })
 
 
 selectedChatRoomIdLens : Lens { b | selectedChatRoomId : a } a
