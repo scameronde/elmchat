@@ -35,12 +35,7 @@ public class InMemoryRepository implements Repository {
 
   @Override
   public List<ChatRoom> getChatRooms() {
-    try {
-      Thread.sleep(1);
-    }
-    catch (InterruptedException e) {
-      e.printStackTrace();  // TODO: handle exception
-    }
+    throttle(2);
     return chatRooms;
   }
 
@@ -67,5 +62,14 @@ public class InMemoryRepository implements Repository {
   @Override
   public MessageLog getMessageLog(ChatRoom chatRoom) {
     return new MessageLog(logs.get(chatRoom));
+  }
+
+  private void throttle(long millis) {
+    try {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();  // TODO: handle exception
+    }
   }
 }
