@@ -11,6 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/slides" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/elm/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/elm/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/course/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
