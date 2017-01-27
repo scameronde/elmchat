@@ -40,6 +40,9 @@ Die verschiedenen Typen zeigen und vom Compiler bestimmen lassen.
     Noch ein String
     """
     ```
+    
+    u = ()
+
 
 - Aggregated Types
 
