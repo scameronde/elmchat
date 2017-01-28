@@ -3,8 +3,8 @@ module BusinessTypes exposing (..)
 import Toolbox.Lens exposing (..)
 
 
-type alias Id =
-    String
+type Id
+    = Id String
 
 
 type alias Participant =
@@ -46,46 +46,6 @@ type ChatCommand
 
 type alias Identifyable a =
     { a | id : Id }
-
-
-setId : Id -> Identifyable a -> Identifyable a
-setId id record =
-    { record | id = id }
-
-
-setName : b -> { a | name : b } -> { a | name : b }
-setName name record =
-    { record | name = name }
-
-
-setTitle : b -> { a | title : b } -> { a | title : b }
-setTitle title record =
-    { record | title = title }
-
-
-setParticipant : b -> { a | participant : b } -> { a | participant : b }
-setParticipant participant record =
-    { record | participant = participant }
-
-
-setChatRoom : b -> { a | chatRoom : b } -> { a | chatRoom : b }
-setChatRoom chatRoom record =
-    { record | chatRoom = chatRoom }
-
-
-setMessage : b -> { a | message : b } -> { a | message : b }
-setMessage message record =
-    { record | message = message }
-
-
-setMessageLog : b -> { a | messageLog : b } -> { a | messageLog : b }
-setMessageLog messageLog record =
-    { record | messageLog = messageLog }
-
-
-setError : b -> { a | error : b } -> { a | error : b }
-setError error record =
-    { record | error = error }
 
 
 idLens : Lens { b | id : a } a

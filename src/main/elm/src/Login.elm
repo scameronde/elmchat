@@ -7,12 +7,11 @@ import Http
 import BusinessTypes exposing (..)
 import RestClient
 import Toolbox.Cmd exposing (..)
-import Toolbox.Lens exposing (..)
 
 
 type Msg
     = Login Participant
-    | GetParticipant String
+    | GetParticipant
     | GetParticipantResult (Result Http.Error Participant)
     | ChangeName String
 
@@ -25,7 +24,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( {name = "", error = ""}
+    ( { name = "", error = "" }
     , Cmd.none
     )
 
@@ -36,11 +35,11 @@ update msg model =
         ChangeName name ->
             ( model |> nameLens.set name, Cmd.none )
 
-        GetParticipant participant ->
+        GetParticipant ->
             ( model, RestClient.getParticipant model.name GetParticipantResult )
 
         GetParticipantResult (Ok participant) ->
-            ( model , toCmd (Login participant) )
+            ( model, toCmd (Login participant) )
 
         GetParticipantResult (Err error) ->
             ( model |> errorLens.set (toString error), Cmd.none )
@@ -52,7 +51,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.form [ onSubmit (GetParticipant model.name) ]
+    Html.form [ onSubmit GetParticipant ]
         [ div [ class "form-group" ]
             [ label [ for "nameInput" ] [ text "Your name" ]
             , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []

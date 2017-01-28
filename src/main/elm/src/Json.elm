@@ -9,9 +9,14 @@ import BusinessTypes exposing (..)
 -- Id
 
 
-decodeId : Decode.Decoder String
+decodeId : Decode.Decoder Id
 decodeId =
-    Decode.string
+    Decode.map Id Decode.string
+
+
+encodeId : Id -> Encode.Value
+encodeId (Id id) =
+    Encode.string <| id
 
 
 
@@ -21,14 +26,14 @@ decodeId =
 decodeParticipant : Decode.Decoder Participant
 decodeParticipant =
     DecodePipeline.decode Participant
-        |> DecodePipeline.required "id" (Decode.string)
+        |> DecodePipeline.required "id" (decodeId)
         |> DecodePipeline.required "name" (Decode.string)
 
 
 encodeParticipant : Participant -> Encode.Value
 encodeParticipant record =
     Encode.object
-        [ ( "id", Encode.string <| record.id )
+        [ ( "id", encodeId <| record.id )
         , ( "name", Encode.string <| record.name )
         ]
 
@@ -45,14 +50,14 @@ decodeChatRooms =
 decodeChatRoom : Decode.Decoder ChatRoom
 decodeChatRoom =
     DecodePipeline.decode ChatRoom
-        |> DecodePipeline.required "id" (Decode.string)
+        |> DecodePipeline.required "id" (decodeId)
         |> DecodePipeline.required "title" (Decode.string)
 
 
 encodeChatRoom : ChatRoom -> Encode.Value
 encodeChatRoom record =
     Encode.object
-        [ ( "id", Encode.string <| record.id )
+        [ ( "id", encodeId <| record.id )
         , ( "title", Encode.string <| record.title )
         ]
 

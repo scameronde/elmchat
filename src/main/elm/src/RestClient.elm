@@ -1,11 +1,11 @@
 module RestClient exposing (getParticipant, postChatRoom, getChatRoom, getChatRooms, deleteChatRoom)
 
 import Http
-import BusinessTypes
+import BusinessTypes exposing (..)
 import Json
 
 
-getParticipant : String -> (Result Http.Error BusinessTypes.Participant -> msg) -> Cmd msg
+getParticipant : String -> (Result Http.Error Participant -> msg) -> Cmd msg
 getParticipant participantName msg =
     let
         getParticipantRequest =
@@ -14,7 +14,7 @@ getParticipant participantName msg =
         Http.send msg getParticipantRequest
 
 
-postParticipant : BusinessTypes.Participant -> (Result Http.Error BusinessTypes.Id -> msg) -> Cmd msg
+postParticipant : Participant -> (Result Http.Error Id -> msg) -> Cmd msg
 postParticipant participant msg =
     let
         postParticipantRequest =
@@ -23,7 +23,7 @@ postParticipant participant msg =
         Http.send msg postParticipantRequest
 
 
-postChatRoom : BusinessTypes.ChatRoom -> (Result Http.Error BusinessTypes.Id -> msg) -> Cmd msg
+postChatRoom : ChatRoom -> (Result Http.Error Id -> msg) -> Cmd msg
 postChatRoom chatRoom msg =
     let
         postChatRoomRequest =
@@ -32,7 +32,7 @@ postChatRoom chatRoom msg =
         Http.send msg postChatRoomRequest
 
 
-getChatRooms : (Result Http.Error (List BusinessTypes.ChatRoom) -> msg) -> Cmd msg
+getChatRooms : (Result Http.Error (List ChatRoom) -> msg) -> Cmd msg
 getChatRooms msg =
     let
         getChatRoomsRequest =
@@ -41,8 +41,8 @@ getChatRooms msg =
         Http.send msg getChatRoomsRequest
 
 
-getChatRoom : String -> (Result Http.Error BusinessTypes.MessageLog -> msg) -> Cmd msg
-getChatRoom id msg =
+getChatRoom : Id -> (Result Http.Error MessageLog -> msg) -> Cmd msg
+getChatRoom (Id id) msg =
     let
         getChatRoomRequest =
             Http.get ("http://localhost:4567/chatRoom/" ++ id) Json.decodeMessageLog
@@ -50,8 +50,8 @@ getChatRoom id msg =
         Http.send msg getChatRoomRequest
 
 
-deleteChatRoom : String -> (Result Http.Error () -> msg) -> Cmd msg
-deleteChatRoom id msg =
+deleteChatRoom : Id -> (Result Http.Error () -> msg) -> Cmd msg
+deleteChatRoom (Id id) msg =
     let
         deleteChatRoomRequest =
             delete ("http://localhost:4567/chatRoom/" ++ id)

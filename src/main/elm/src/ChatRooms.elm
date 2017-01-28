@@ -33,7 +33,7 @@ type Msg
     | DeleteChatRoomResult (Result Http.Error ())
     | ChangeTitle String
     | PostChatRoom Model
-    | PostChatRoomResult (Result Http.Error String)
+    | PostChatRoomResult (Result Http.Error Id)
     | GetChatRooms Time.Time
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
 
@@ -73,7 +73,7 @@ update msg model =
         -- add a new chat room
         PostChatRoom model ->
             ( model |> newChatRoomTitleLens.set ""
-            , RestClient.postChatRoom (ChatRoom "" model.newChatRoomTitle) PostChatRoomResult
+            , RestClient.postChatRoom (ChatRoom (Id "") model.newChatRoomTitle) PostChatRoomResult
             )
 
         PostChatRoomResult (Ok id) ->
