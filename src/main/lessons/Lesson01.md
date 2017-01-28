@@ -39,10 +39,9 @@ Die verschiedenen Typen zeigen und vom Compiler bestimmen lassen.
     f = """
     Noch ein String
     """
-    ```
     
     u = ()
-
+    ```
 
 - Aggregated Types
 
