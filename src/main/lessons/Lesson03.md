@@ -6,8 +6,8 @@
     1. Datei `Types.elm` anlegen
     1. Typen da rein
         ```
-        type alias Id =
-            String
+        type Id =
+            Id String
         
         
         type alias Participant =
@@ -24,37 +24,55 @@
         import Types exposing (..)
         
         
+        -- Id
+        
+        
+        decodeId : Decode.Decoder Id
+        decodeId =
+            Decode.map Id Decode.string
+        
+        
+        encodeId : Id -> Encode.Value
+        encodeId (Id id) =
+            Encode.string <| id
+        
+        
+        
+        -- Participant
+        
+        decodeParticipant : Decode.Decoder Participant
+        decodeParticipant =
+            DecodePipeline.decode Participant
+                |> DecodePipeline.required "id" (decodeId)
+                |> DecodePipeline.required "name" (Decode.string)
+        
+        
         encodeParticipant : Participant -> Encode.Value
         encodeParticipant record =
             Encode.object
-                [ ( "id", Encode.string record.id )
-                , ( "name", Encode.string record.name )
+                [ ( "id", encodeId <| record.id )
+                , ( "name", Encode.string <| record.name )
                 ]
-        
-        
-        decodeId : Decode.Decoder String
-        decodeId =
-            Decode.string
         ```
 
 ## REST
 
-1. Rest POST erstellen
+1. Rest GET erstellen
     1. Datei `Rest.elm` anlegen
-    1. POST Request
+    1. GET Request
         ```
         import Http
         import Types exposing (..)
         import Json
         
         
-        postParticipant : Participant -> (Result Http.Error Id -> msg) -> Cmd msg
-        postParticipant participant msg =
+        getParticipant : String -> (Result Http.Error Participant -> msg) -> Cmd msg
+        getParticipant participantName msg =
             let
-                postParticipantRequest =
-                    Http.post "http://localhost:4567/participant" (participant |> Json.encodeParticipant |> Http.jsonBody) Json.decodeId
+                getParticipantRequest =
+                    Http.get ("http://localhost:4567/participant/" ++ participantName) Json.decodeParticipant
             in
-                Http.send msg postParticipantRequest
+                Http.send msg getParticipantRequest
         ```
 
 ## Ein richtiges Programm
@@ -105,85 +123,53 @@
         </script>
     ```
 
-## Auf ```Participant``` umstellen
+## Modell um ```Participant``` erweitern
 
-1. Modell in Participant und Error aufteilen
-   ```
-   type alias Model =
-       { participant : Participant
-       , error : String
-       }
-   ```
+1. Modell in Name, Participant und Error aufteilen
+    ```
+    type alias Model =
+        { name : String
+        , participant : Participant
+        , error : String
+        }
+    ```
      
 1. ```init``` anpassen
     ```
     init : Flags -> ( Model, Cmd Msg )
     init flags =
-        ( { participant = { id = "", name = "" }, error = "" }, Cmd.none )
+        ( { name = ""
+          , participant = { id = Id "", name = "" }
+          , error = ""
+          }
+        , Cmd.none
+        )
     ```
     
-1. ```view``` anpassen
-    ```
-    , input [ id "myInput", class "form-control", value model.participant.name, onInput ChangeName ] []
-    ```
-
-1. ```update``` anpassen
-    ```
-            ChangeName newName ->
-                let
-                    participant =
-                        model.participant
-    
-                    newParticipant =
-                        { participant | name = newName }
-    
-                    newModel =
-                        { model | participant = newParticipant }
-                in
-                    ( newModel, Cmd.none )
-    ```
-
 1. REST Commandos und Messages verbauen
     1. `Msg` um Message für Form-Submit erweitern
         ```
         type Msg
-            = ChangeName String
-            | PostParticipant Participant
+            = GetParticipant
+            | GetParticipantResult (Result Http.Error Participant)
+            | ChangeName String
         ```
     1. `view` um Form-Submit erweitern
         ```
-        [ Html.form [onSubmit (PostParticipant model.participant)]
+        [ Html.form [onSubmit GetParticipant]
         ```
     1. `update` das Form-Submit behandeln lassen
         ```
-        PostParticipant participant ->
-            ( model, postParticipant participant PostParticipantResult )
-        ```
-    1. `Msg` um Message für das Ergebnis des POST Requests erweitern
-        ```
-            | PostParticipantResult (Result Http.Error Id)
+        GetParticipant ->
+            ( model, Rest.getParticipant model.name GetParticipantResult )
         ```
     1. `update` das Ergebnis behandeln lassen
         ```
-        PostParticipantResult (Ok id) ->
-            let
-                participant =
-                    model.participant
+        GetParticipantResult (Ok participant) ->
+            ( { model | participant = participant }, Cmd.none )
 
-                newParticipant =
-                    { participant | id = id }
-
-                newModel =
-                    { model | participant = newParticipant }
-            in
-                ( newModel, Cmd.none )
-
-        PostParticipantResult (Err error) ->
-            let
-                newModel =
-                    { model | error = toString error }
-            in
-                ( newModel, Cmd.none )
+        GetParticipantResult (Err error) ->
+            ( { model | error = (toString error) }, Cmd.none )
         ```
 
 

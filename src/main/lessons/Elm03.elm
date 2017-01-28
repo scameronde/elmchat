@@ -13,69 +13,51 @@ type alias Flags =
 
 
 type alias Model =
-    { participant : Participant
+    { name : String
+    , participant : Participant
     , error : String
     }
 
 
 type Msg
-    = ChangeName String
-    | PostParticipant Participant
-    | PostParticipantResult (Result Http.Error Id)
+    = GetParticipant
+    | GetParticipantResult (Result Http.Error Participant)
+    | ChangeName String
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { participant = { id = "", name = "" }, error = "" }, Cmd.none )
+    ( { name = ""
+      , participant = { id = Id "", name = "" }
+      , error = ""
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeName newName ->
-            let
-                participant =
-                    model.participant
+            ( { model | name = newName }, Cmd.none )
 
-                newParticipant =
-                    { participant | name = newName }
+        GetParticipant ->
+            ( model, Rest.getParticipant model.name GetParticipantResult )
 
-                newModel =
-                    { model | participant = newParticipant }
-            in
-                ( newModel, Cmd.none )
+        GetParticipantResult (Ok participant) ->
+            ( { model | participant = participant }, Cmd.none )
 
-        PostParticipant participant ->
-            ( model, postParticipant participant PostParticipantResult )
-
-        PostParticipantResult (Ok id) ->
-            let
-                participant =
-                    model.participant
-
-                newParticipant =
-                    { participant | id = id }
-
-                newModel =
-                    { model | participant = newParticipant }
-            in
-                ( newModel, Cmd.none )
-
-        PostParticipantResult (Err error) ->
-            let
-                newModel =
-                    { model | error = toString error }
-            in
-                ( newModel, Cmd.none )
+        GetParticipantResult (Err error) ->
+            ( { model | error = (toString error) }, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ Html.form [ onSubmit (PostParticipant model.participant) ]
+        [ Html.form [ onSubmit GetParticipant ]
             [ div [ class "form-group" ]
                 [ label [ for "myInput" ] [ text "Eingabe: " ]
-                , input [ id "myInput", class "form-control", value model.participant.name, onInput ChangeName ] []
+                , input [ id "myInput", class "form-control", value model.name, onInput ChangeName ] []
                 ]
             , button [ class "btn btn-primary" ] [ text "OK" ]
             ]

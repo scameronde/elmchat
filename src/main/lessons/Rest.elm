@@ -5,10 +5,10 @@ import Types exposing (..)
 import Json
 
 
-postParticipant : Participant -> (Result Http.Error Id -> msg) -> Cmd msg
-postParticipant participant msg =
+getParticipant : String -> (Result Http.Error Participant -> msg) -> Cmd msg
+getParticipant participantName msg =
     let
-        postParticipantRequest =
-            Http.post "http://localhost:4567/participant" (participant |> Json.encodeParticipant |> Http.jsonBody) Json.decodeId
+        getParticipantRequest =
+            Http.get ("http://localhost:4567/participant/" ++ participantName) Json.decodeParticipant
     in
-        Http.send msg postParticipantRequest
+        Http.send msg getParticipantRequest
