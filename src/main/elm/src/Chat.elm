@@ -2,7 +2,7 @@ module Chat exposing (Msg, Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Toolbox.Update as Update
+import Toolbox.Model as Model
 import BusinessTypes exposing (..)
 import ChatRooms
 import ChatRoom
@@ -29,7 +29,7 @@ type alias Model =
 init : Participant -> ( Model, Cmd Msg )
 init participant =
     ChatRooms.init
-        |> Update.map
+        |> Model.map
             (\chatRooms ->
                 { chatRoomsModel = chatRooms
                 , chatRoomModel = Nothing
@@ -44,20 +44,20 @@ update msg model =
     case msg of
         ChatRoomsMsg (ChatRooms.Selected chatRoom) ->
             ChatRoom.init model.participant chatRoom
-                |> Update.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
+                |> Model.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
 
         ChatRoomsMsg (ChatRooms.Deselected) ->
             ( { model | chatRoomModel = Nothing }, Cmd.none )
 
         ChatRoomsMsg msg_ ->
             ChatRooms.update msg_ model.chatRoomsModel
-                |> Update.map (\a -> { model | chatRoomsModel = a }) ChatRoomsMsg
+                |> Model.map (\a -> { model | chatRoomsModel = a }) ChatRoomsMsg
 
         ChatRoomMsg msg_ ->
             case model.chatRoomModel of
                 Just model_ ->
                     ChatRoom.update msg_ model_
-                        |> Update.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
+                        |> Model.map (\a -> { model | chatRoomModel = Just a }) ChatRoomMsg
 
                 _ ->
                     ( model, Cmd.none )

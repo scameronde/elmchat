@@ -3,7 +3,7 @@ module ChatClient exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import NavBar exposing (..)
-import Toolbox.Update as Update
+import Toolbox.Model as Model
 import Login
 import Chat
 
@@ -27,7 +27,7 @@ type Model
 init : ( Model, Cmd Msg )
 init =
     Login.init
-        |> Update.map LoginModel LoginMsg
+        |> Model.map LoginModel LoginMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -35,15 +35,15 @@ update msg model =
     case ( msg, model ) of
         ( LoginMsg (Login.Login participant), LoginModel model_ ) ->
             Chat.init participant
-                |> Update.map ChatModel ChatMsg
+                |> Model.map ChatModel ChatMsg
 
         ( LoginMsg msg_, LoginModel model_ ) ->
             Login.update msg_ model_
-                |> Update.map LoginModel LoginMsg
+                |> Model.map LoginModel LoginMsg
 
         ( ChatMsg msg_, ChatModel model_ ) ->
             Chat.update msg_ model_
-                |> Update.map ChatModel ChatMsg
+                |> Model.map ChatModel ChatMsg
 
         _ ->
             Debug.log "Stray combiniation of Model and Message found" ( model, Cmd.none )

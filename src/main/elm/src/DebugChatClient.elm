@@ -2,7 +2,7 @@ module DebugChatClient exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Toolbox.Update as Update
+import Toolbox.Model as Model
 import ChatClient
 
 
@@ -23,13 +23,13 @@ type alias Model =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ChatClient.init
-      |> Update.map (\init -> { model = init, debug = flags.debug }) identity
+      |> Model.map (\init -> { model = init, debug = flags.debug }) identity
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ChatClient.update msg model.model
-      |> Update.map (\ccm -> { model | model = ccm }) identity
+      |> Model.map (\ccm -> { model | model = ccm }) identity
 
 
 view : Model -> Html Msg
