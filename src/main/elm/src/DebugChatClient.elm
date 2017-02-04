@@ -15,21 +15,22 @@ type alias Msg =
 
 
 type alias Model =
-    { model : ChatClient.Model
-    , debug : Bool
+    { debug : Bool
+    , model : ChatClient.Model
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ChatClient.init
-      |> Model.map (\init -> { model = init, debug = flags.debug }) identity
+    Model.init (Model flags.debug)
+        |> Model.apply ChatClient.init identity
+        |> Model.get
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ChatClient.update msg model.model
-      |> Model.map (\ccm -> { model | model = ccm }) identity
+        |> Model.map (\ccm -> { model | model = ccm }) identity
 
 
 view : Model -> Html Msg
