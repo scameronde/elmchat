@@ -349,19 +349,19 @@ subscriptions model =
 
 chatRoomsLens : Lens { b | chatRooms : a } a
 chatRoomsLens =
-    Lens .chatRooms (\a b -> { b | chatRooms = a })
+    lens .chatRooms (\a b -> { b | chatRooms = a })
 
 
 selectedChatRoomIdLens : Lens { b | selectedChatRoomId : a } a
 selectedChatRoomIdLens =
-    Lens .selectedChatRoomId (\a b -> { b | selectedChatRoomId = a })
+    lens .selectedChatRoomId (\a b -> { b | selectedChatRoomId = a })
 
 
 chatRoomIdToDeleteLens : Lens { b | chatRoomIdToDelete : a } a
 chatRoomIdToDeleteLens =
-    Lens .chatRoomIdToDelete (\a b -> { b | chatRoomIdToDelete = a })
+    lens .chatRoomIdToDelete (\a b -> { b | chatRoomIdToDelete = a })
 
 
 newChatRoomTitleLens : Lens { b | newChatRoomTitle : a } a
 newChatRoomTitleLens =
-    Lens .newChatRoomTitle (\a b -> { b | newChatRoomTitle = a })
+    lens .newChatRoomTitle (\a b -> { b | newChatRoomTitle = a })
