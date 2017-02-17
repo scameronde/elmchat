@@ -33,7 +33,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeName name ->
-            ( model |> nameLens.set name, Cmd.none )
+            ( model
+                |> nameLens.set name
+                |> errorLens.set
+                    (if String.isEmpty name then
+                        ""
+                     else
+                        model.error
+                    )
+            , Cmd.none
+            )
 
         GetParticipant ->
             ( model, RestClient.getParticipant model.name GetParticipantResult )
@@ -51,13 +60,26 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.form [ onSubmit GetParticipant ]
-        [ div [ class "form-group" ]
-            [ label [ for "nameInput" ] [ text "Your name" ]
-            , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []
+    div []
+        [ div [ class "alert alert-danger", hidden (noError model) ] [ text "Wrong Credentials!" ]
+        , Html.form [ onSubmit GetParticipant ]
+            [ div [ class "form-group" ]
+                [ label [ for "nameInput" ] [ text "Your name" ]
+                , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []
+                ]
+            , button [ class "btn btn-primary", disabled (noName model) ] [ text "OK" ]
             ]
-        , button [ class "btn btn-primary" ] [ text "OK" ]
         ]
+
+
+noError : Model -> Bool
+noError model =
+    String.isEmpty model.error
+
+
+noName : Model -> Bool
+noName model =
+    String.isEmpty model.name
 
 
 subscriptions : Model -> Sub Msg
