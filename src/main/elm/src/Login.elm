@@ -35,17 +35,15 @@ update msg model =
         ChangeName name ->
             ( model
                 |> nameLens.set name
-                |> errorLens.set
-                    (if String.isEmpty name then
-                        ""
-                     else
-                        model.error
-                    )
+                |> errorLens.set (updatedErrorMessage name model.error)
             , Cmd.none
             )
 
         GetParticipant ->
-            ( model, RestClient.getParticipant model.name GetParticipantResult )
+            if (model.name |> String.isEmpty) then
+                ( model, Cmd.none )
+            else
+                ( model, RestClient.getParticipant model.name GetParticipantResult )
 
         GetParticipantResult (Ok participant) ->
             ( model, toCmd (Login participant) )
@@ -58,10 +56,19 @@ update msg model =
             ( model, Cmd.none )
 
 
+updatedErrorMessage : String -> String -> String
+updatedErrorMessage name error =
+    (if String.isEmpty name then
+        ""
+     else
+        error
+    )
+
+
 view : Model -> Html Msg
 view model =
     div []
-        [ div [ class "alert alert-danger", hidden (noError model) ] [ text "Wrong Credentials!" ]
+        [ viewErrorMsg model "Wrong Credentials!"
         , Html.form [ onSubmit GetParticipant ]
             [ div [ class "form-group" ]
                 [ label [ for "nameInput" ] [ text "Your name" ]
@@ -70,6 +77,14 @@ view model =
             , button [ class "btn btn-primary", disabled (noName model) ] [ text "OK" ]
             ]
         ]
+
+
+viewErrorMsg : Model -> String -> Html Msg
+viewErrorMsg model msg =
+    if (String.isEmpty model.error) then
+        div [] []
+    else
+        div [ class "alert alert-danger" ] [ text msg ]
 
 
 noError : Model -> Bool
