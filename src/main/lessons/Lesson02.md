@@ -3,6 +3,17 @@
 Eine einfache Seite mit einem Label, einem Feld und einem Button,
 all das in einer Form.
 
+## Main Programm
+```
+main : Program Never Model Msg
+main =
+    Html.beginnerProgram
+        { model = model
+        , view = view
+        , update = update
+        }
+```
+
 ## Einen View bauen
 
 1. Einfaches HTML Template für das was wir vorhaben
@@ -31,8 +42,8 @@ all das in einer Form.
     ```
         Html.form []
             [ div []
-                [ label [ for "myInput" ] [ text "Eingabe: " ]
-                , input [ id "myInput" ] []
+                [ label [ for "nameInput" ] [ text "Your name" ]
+                , input [ id "nameInput" ] []
                 ]
             , button [] [ text "OK" ]
             ]
@@ -43,8 +54,8 @@ all das in einer Form.
         div [ class "container" ]
             [ Html.form []
                 [ div [ class "form-group" ]
-                    [ label [ for "myInput" ] [ text "Eingabe: " ]
-                    , input [ id "myInput", class "form-control" ] []
+                    [ label [ for "nameInput" ] [ text "Your name" ]
+                    , input [ id "nameInput", class "form-control" ] []
                     ]
                 , button [ class "btn btn-primary" ] [ text "OK" ]
                 ]
@@ -73,14 +84,14 @@ all das in einer Form.
 
 1. Modell mit View verbinden
     ```
-    , input [ id "myInput", class "form-control", value model.name] []
+    , input [ id "nameInput", class "form-control", value model.name] []
     ```
     
     TESTEN!
     
 1. View mit Modell verbinden
     ```
-    , input [ id "myInput", class "form-control", value model.name, onInput ChangeName] []
+    , input [ id "nameInput", class "form-control", value model.name, onInput ChangeName] []
     ```
     
     ```
