@@ -238,7 +238,7 @@ viewChatRooms model =
                     ( "Error: " ++ e, [], Nothing )
     in
         div []
-            [ text txt
+            [ div [class "info" ][text txt]
             , viewChatRoomList list selection
             ]
 

@@ -13,3 +13,11 @@ body {
     margin: 25px 0 0 0;
     padding: 15px;
 }
+
+.info {
+    color: #797B74;
+    text-align: left;
+    border: 1px dashed #c5c5c5;
+    margin: 25px 0 0 0;
+    padding: 5px;
+}
