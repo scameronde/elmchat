@@ -6,44 +6,46 @@ import Html.Events exposing (..)
 
 
 type alias Model =
-    String
+    { name : String, error : String }
 
 
 type Msg
-    = NewName Fields String
+    = NewValue Field String
     | Login
 
-type Fields = Name
+
+type Field
+    = Name
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( "", Cmd.none )
-
-
-view : Model -> Html Msg
-view model =
-    div
-        []
-        [ Html.form [ onSubmit Login ]
-            [ div [ class "form-group" ]
-                [ label [ for "nameInput" ] [ text "Your name" ]
-                , input [ id "nameInput", class "form-control", value model, onInput (NewName Name) ] []
-                ]
-            , button [ class "btn btn-primary" ] [ text "Login" ]
-            ]
-        , div [ class "debug" ] [ text model ]
-        ]
+    ( { name = "", error = "" }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewName Name value ->
-            ( value, Cmd.none )
+        NewValue Name value ->
+            ( { model | name = value }, Cmd.none )
 
         Login ->
             ( model, Cmd.none )
+
+
+view : Model -> Html Msg
+view model =
+    div
+        [ class "view-area" ]
+        [ Html.form [ onSubmit Login ]
+            [ div [ class "form-group" ]
+                [ label [ for "nameInput" ] [ text "Your name" ]
+                , input [ id "nameInput", class "form-control", value model.name, onInput (NewValue Name) ] []
+                ]
+            , button [ class "btn btn-primary" ] [ text "Login" ]
+            ]
+        , div [ class "debug" ] [ text <| toString model ]
+        ]
 
 
 subscriptions : Model -> Sub Msg
