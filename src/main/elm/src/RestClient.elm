@@ -9,7 +9,7 @@ getParticipant : String -> (Result Http.Error Participant -> msg) -> Cmd msg
 getParticipant participantName msg =
     let
         getParticipantRequest =
-            Http.get ("http://localhost:4567/participant/" ++ participantName) Json.decodeParticipant
+            Http.get ("http://localhost:4567/participant/" ++ participantName) Json.decoderForParticipant
     in
         Http.send msg getParticipantRequest
 
@@ -18,7 +18,7 @@ postParticipant : Participant -> (Result Http.Error Id -> msg) -> Cmd msg
 postParticipant participant msg =
     let
         postParticipantRequest =
-            Http.post "http://localhost:4567/participant" (participant |> Json.encodeParticipant |> Http.jsonBody) Json.decodeId
+            Http.post "http://localhost:4567/participant" (participant |> Json.encodeParticipant |> Http.jsonBody) Json.decoderForId
     in
         Http.send msg postParticipantRequest
 
@@ -27,7 +27,7 @@ postChatRoom : ChatRoom -> (Result Http.Error Id -> msg) -> Cmd msg
 postChatRoom chatRoom msg =
     let
         postChatRoomRequest =
-            Http.post "http://localhost:4567/chatRoom" (chatRoom |> Json.encodeChatRoom |> Http.jsonBody) Json.decodeId
+            Http.post "http://localhost:4567/chatRoom" (chatRoom |> Json.encodeChatRoom |> Http.jsonBody) Json.decoderForId
     in
         Http.send msg postChatRoomRequest
 
@@ -36,7 +36,7 @@ getChatRooms : (Result Http.Error (List ChatRoom) -> msg) -> Cmd msg
 getChatRooms msg =
     let
         getChatRoomsRequest =
-            Http.get "http://localhost:4567/chatRoom" Json.decodeChatRooms
+            Http.get "http://localhost:4567/chatRoom" Json.decoderForChatRooms
     in
         Http.send msg getChatRoomsRequest
 
@@ -45,7 +45,7 @@ getChatRoom : Id -> (Result Http.Error MessageLog -> msg) -> Cmd msg
 getChatRoom (Id id) msg =
     let
         getChatRoomRequest =
-            Http.get ("http://localhost:4567/chatRoom/" ++ id) Json.decodeMessageLog
+            Http.get ("http://localhost:4567/chatRoom/" ++ id) Json.decoderForMessageLog
     in
         Http.send msg getChatRoomRequest
 

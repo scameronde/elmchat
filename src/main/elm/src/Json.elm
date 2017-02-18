@@ -9,56 +9,44 @@ import BusinessTypes exposing (..)
 -- Id
 
 
-decodeId : Decode.Decoder Id
-decodeId =
-    Decode.map Id Decode.string
-
-
 encodeId : Id -> Encode.Value
 encodeId (Id id) =
-    Encode.string <| id
+    Encode.string id
+
+
+decoderForId : Decode.Decoder Id
+decoderForId =
+    Decode.map Id Decode.string
 
 
 
 -- Participant
 
 
-decodeParticipant : Decode.Decoder Participant
-decodeParticipant =
-    DecodePipeline.decode Participant
-        |> DecodePipeline.required "id" (decodeId)
-        |> DecodePipeline.required "name" (Decode.string)
-
-
 encodeParticipant : Participant -> Encode.Value
 encodeParticipant record =
     Encode.object
-        [ ( "id", encodeId <| record.id )
-        , ( "name", Encode.string <| record.name )
+        [ ( "id", encodeId record.id )
+        , ( "name", Encode.string record.name )
         ]
+
+
+decoderForParticipant : Decode.Decoder Participant
+decoderForParticipant =
+    DecodePipeline.decode Participant
+        |> DecodePipeline.required "id" (decoderForId)
+        |> DecodePipeline.required "name" (Decode.string)
 
 
 
 -- ChatRoom
 
 
-decodeChatRooms : Decode.Decoder (List ChatRoom)
-decodeChatRooms =
-    Decode.list decodeChatRoom
-
-
-decodeChatRoom : Decode.Decoder ChatRoom
-decodeChatRoom =
-    DecodePipeline.decode ChatRoom
-        |> DecodePipeline.required "id" (decodeId)
-        |> DecodePipeline.required "title" (Decode.string)
-
-
 encodeChatRoom : ChatRoom -> Encode.Value
 encodeChatRoom record =
     Encode.object
-        [ ( "id", encodeId <| record.id )
-        , ( "title", Encode.string <| record.title )
+        [ ( "id", encodeId record.id )
+        , ( "title", Encode.string record.title )
         ]
 
 
@@ -67,15 +55,20 @@ encodeChatRooms list =
     Encode.list <| List.map encodeChatRoom list
 
 
+decoderForChatRooms : Decode.Decoder (List ChatRoom)
+decoderForChatRooms =
+    Decode.list decoderForChatRoom
+
+
+decoderForChatRoom : Decode.Decoder ChatRoom
+decoderForChatRoom =
+    DecodePipeline.decode ChatRoom
+        |> DecodePipeline.required "id" (decoderForId)
+        |> DecodePipeline.required "title" (Decode.string)
+
+
 
 -- ChatRegistration
-
-
-decodeChatRegistration : Decode.Decoder ChatRegistration
-decodeChatRegistration =
-    DecodePipeline.decode ChatRegistration
-        |> DecodePipeline.required "participant" decodeParticipant
-        |> DecodePipeline.required "chatRoom" decodeChatRoom
 
 
 encodeChatRegistration : ChatRegistration -> Encode.Value
@@ -86,38 +79,45 @@ encodeChatRegistration record =
         ]
 
 
+decoderForChatRegistration : Decode.Decoder ChatRegistration
+decoderForChatRegistration =
+    DecodePipeline.decode ChatRegistration
+        |> DecodePipeline.required "participant" decoderForParticipant
+        |> DecodePipeline.required "chatRoom" decoderForChatRoom
+
+
 
 -- Message
-
-
-decodeMessage : Decode.Decoder Message
-decodeMessage =
-    DecodePipeline.decode Message
-        |> DecodePipeline.required "message" (Decode.string)
 
 
 encodeMessage : Message -> Encode.Value
 encodeMessage record =
     Encode.object
-        [ ( "message", Encode.string <| record.message )
+        [ ( "message", Encode.string record.message )
         ]
+
+
+decoderForMessage : Decode.Decoder Message
+decoderForMessage =
+    DecodePipeline.decode Message
+        |> DecodePipeline.required "message" (Decode.string)
 
 
 
 -- MessageLog
 
 
-decodeMessageLog : Decode.Decoder MessageLog
-decodeMessageLog =
-    DecodePipeline.decode MessageLog
-        |> DecodePipeline.required "messageLog" (Decode.string)
-
-
 encodeMessageLog : MessageLog -> Encode.Value
 encodeMessageLog record =
     Encode.object
-        [ ( "messageLog", Encode.string <| record.messageLog )
+        [ ( "messageLog", Encode.string record.messageLog )
         ]
+
+
+decoderForMessageLog : Decode.Decoder MessageLog
+decoderForMessageLog =
+    DecodePipeline.decode MessageLog
+        |> DecodePipeline.required "messageLog" (Decode.string)
 
 
 
