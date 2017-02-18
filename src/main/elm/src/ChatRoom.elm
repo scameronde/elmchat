@@ -12,9 +12,13 @@ import BusinessTypes exposing (..)
 
 type Msg
     = SetChatHistory (Result Http.Error MessageLog)
-    | SetMessage String
+    | ChangeField Field String
     | SendMessage String
     | ReceivedMessage String
+
+
+type Field
+    = NewMessage
 
 
 type alias Model =
@@ -42,7 +46,7 @@ init participant chatRoom =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SetMessage message ->
+        ChangeField NewMessage message ->
             ( model |> messageLens.set message, Cmd.none )
 
         SendMessage message ->
@@ -70,7 +74,7 @@ view model =
                 , size 30
                 , placeholder <| model.participant.name ++ ": Enter message"
                 , value model.message
-                , onInput SetMessage
+                , onInput (ChangeField NewMessage)
                 ]
                 []
             , button [ class "btn btn-primary" ] [ text "Send" ]

@@ -13,13 +13,17 @@ type Msg
     = Login Participant
     | GetParticipant
     | GetParticipantResult (Result Http.Error Participant)
-    | ChangeName String
+    | ChangeField Field String
 
 
 type alias Model =
     { name : String
     , error : String
     }
+
+
+type Field
+    = Name
 
 
 init : ( Model, Cmd Msg )
@@ -32,7 +36,7 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangeName name ->
+        ChangeField Name name ->
             ( model
                 |> nameLens.set name
                 |> errorLens.set (updatedErrorMessage name model.error)
@@ -72,7 +76,7 @@ view model =
         , Html.form [ onSubmit GetParticipant ]
             [ div [ class "form-group" ]
                 [ label [ for "nameInput" ] [ text "Your name" ]
-                , input [ id "nameInput", type_ "text", class "form-control", onInput ChangeName ] []
+                , input [ id "nameInput", type_ "text", class "form-control", onInput (ChangeField Name) ] []
                 ]
             , button [ class "btn btn-primary", disabled (noName model) ] [ text "OK" ]
             ]

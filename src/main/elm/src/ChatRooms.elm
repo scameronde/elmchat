@@ -31,11 +31,15 @@ type Msg
     | DeleteChatRoomAcknowledge
     | DeleteChatRoomCancel
     | DeleteChatRoomResult (Result Http.Error ())
-    | ChangeTitle String
+    | ChangeField Field String
     | PostChatRoom Model
     | PostChatRoomResult (Result Http.Error Id)
     | GetChatRooms Time.Time
     | GetChatRoomsResult (Result Http.Error (List ChatRoom))
+
+
+type Field
+    = Title
 
 
 type alias Model =
@@ -67,7 +71,7 @@ update msg model =
             selectChatRoom id model
 
         -- enter the title for a new chat room
-        ChangeTitle title ->
+        ChangeField Title title ->
             ( model |> newChatRoomTitleLens.set title, Cmd.none )
 
         -- add a new chat room
@@ -238,7 +242,7 @@ viewChatRooms model =
                     ( "Error: " ++ e, [], Nothing )
     in
         div []
-            [ div [class "info" ][text txt]
+            [ div [ class "info" ] [ text txt ]
             , viewChatRoomList list selection
             ]
 
@@ -284,7 +288,7 @@ viewNewChatRoom model =
     Html.form [ onSubmit (PostChatRoom model) ]
         [ div [ class "form-group" ]
             [ label [ for "titleInput" ] [ text "New Chat Room" ]
-            , input [ id "titleInput", type_ "text", value model.newChatRoomTitle, class "form-control", onInput ChangeTitle ] []
+            , input [ id "titleInput", type_ "text", value model.newChatRoomTitle, class "form-control", onInput (ChangeField Title) ] []
             ]
         , button
             [ class "btn btn-primary"
