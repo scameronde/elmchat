@@ -34,7 +34,7 @@ all =
                         Login.init |> first
 
                     updatedModel =
-                        Login.update (Login.ChangeName newName) initialModel |> first
+                        Login.update (Login.ChangeField Login.Name newName) initialModel |> first
                 in
                     expect updatedModel.participant.name to equal newName
         , fuzz (string) "On successful REST Post it deliveres new model with new id" <|
@@ -44,7 +44,7 @@ all =
                         Login.Model "" (BusinessTypes.Participant "" "")
 
                     updatedModel =
-                        Login.update (Login.PostParticipantResult (Ok newId)) initialModel |> first
+                        Login.update (Login.GetParticipantResult (Ok newId)) initialModel |> first
                 in
                     expect updatedModel.participant.id to equal newId
         , fuzz2 string string "On successful REST Post the model name is unchanged" <|
@@ -54,7 +54,7 @@ all =
                         Login.Model "" (BusinessTypes.Participant "" initialName)
 
                     updatedModel =
-                        Login.update (Login.PostParticipantResult (Ok newId)) initialModel |> first
+                        Login.update (Login.GetParticipantResult (Ok newId)) initialModel |> first
                 in
                     expect updatedModel.participant.name to equal initialName
         , fuzz2 httpError string "On unsuccessful REST Post the model name is unchanced" <|
@@ -64,7 +64,7 @@ all =
                         Login.Model "" (BusinessTypes.Participant "" initialName)
 
                     updatedModel =
-                        Login.update (Login.PostParticipantResult (Err error)) initialModel |> first
+                        Login.update (Login.GetParticipantResult (Err error)) initialModel |> first
                 in
                     expect updatedModel.participant.name to equal initialName
         ]

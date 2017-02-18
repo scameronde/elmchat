@@ -1,4 +1,4 @@
-module Login exposing (Msg(..), Model, init, update, view, subscriptions)
+module Login exposing (Msg(..), Field(..), Model, init, update, view, subscriptions)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
