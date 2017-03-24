@@ -1,9 +1,9 @@
-module Toolbox.Model exposing (init, apply, get, map, andThenDo, insteadDo, modify, creator, pure, hoist, creatorFrom, ap, run)
+module Toolbox.Model exposing (create, combine, run, map, andThenDo, insteadDo, modify )
 
 {-| Helper functions for mapping and manipulating Tupels of (Model, Cmd).
 
 # Initializing composed models
-@docs init, apply, get, andThenDo, insteadDo
+@docs create, combine, run, andThenDo, insteadDo
 
 # Updating composed models
 @docs map, modify, andThenDo, insteadDo
@@ -13,65 +13,44 @@ module Toolbox.Model exposing (init, apply, get, map, andThenDo, insteadDo, modi
 import Tuple exposing (..)
 
 
-type Creator a
-    = Creator a
+type Creator a m
+    = Creator (a, Cmd m)
 
+pure : (a, Cmd m) -> Creator a m
+pure = Creator
+
+hoist : (msgI -> msgO) -> Creator a msgI -> Creator a msgO
+hoist f (Creator (a, cmdI)) = Creator (a, Cmd.map f cmdI)
+
+apply : Creator (a -> b) m -> Creator a m -> Creator b m
+apply (Creator (f, m1)) (Creator (a, m2)) = Creator (f a ! [m1, m2])
+
+{-| Extract the (model, Cmd msg) tuple
+-}
+run : Creator a m -> (a, Cmd m)
+run (Creator tupple) = tupple
 
 {-| Prepare a new tuple (Model, Cmd) for initialization.
 
-    init (Model firstField secondField)
+    create (Model firstField secondField)
 
-    where type Model gets partially initialized and the next fields will be initilized
-    with the use of @apply
+    where type Model gets partially initialized and the next fields will be initialized
+    with the use of @combine
 -}
-init : a -> ( Creator a, Cmd msg )
-init a =
-    ( Creator a, Cmd.none )
+create : (a -> b) -> Creator (a -> b) m
+create f = pure (f, Cmd.none)
 
-
-type CreatorA m a
-    = MkCreatorA ( a, Cmd m )
-
-pure : (a, Cmd m ) -> CreatorA m a
-pure =
-    MkCreatorA
-
-hoist : (m -> n) -> CreatorA m a -> CreatorA n a
-hoist f (MkCreatorA ( x, m )) =
-    MkCreatorA ( x, (Cmd.map f m) )
-
-creator : a -> CreatorA msgN a
-creator x = pure (x, Cmd.none)
-
-creatorFrom : (msg -> msgN) -> ( a, Cmd msg ) -> CreatorA msgN a
-creatorFrom msgMapper =
-    hoist msgMapper << pure
-
-ap : CreatorA m (a -> b) -> CreatorA m a -> CreatorA m b
-ap (MkCreatorA (f, cmd)) (MkCreatorA (i, cmdI)) = MkCreatorA (f i ! [cmd, cmdI])
-
-run : CreatorA msg a -> (a, Cmd msg)
-run (MkCreatorA x) = x
-
-{-| Apply a tuple (Model, Cmd) to the initialized tuple
+{-| Combine a tuple (Model, Cmd) to the initialized tuple
 
     init (Model firstField secondField)
-      |> apply Module1.init Module1Msg
+      |> combine Module1Msg Module1.init
 
     where the model part of Module1.init will be part of the resulting model and Module1Msg wraps
     the msg type for the resulting Cmd
 -}
-apply : ( a, Cmd msg ) -> (msg -> msgN) -> ( Creator (a -> b), Cmd msgN ) -> ( Creator b, Cmd msgN )
-apply ( modelI, cmdI ) msgMapper ( Creator f, cmd ) =
-    Creator (f modelI) ! [ cmd, Cmd.map msgMapper cmdI ]
-
-
-{-| Get the (model, Cmd) tuple
--}
-get : ( Creator a, Cmd msg ) -> ( a, Cmd msg )
-get ( Creator a, cmd ) =
-    ( a, cmd )
-
+combine : (msgI -> msgO) -> (a, Cmd msgI) -> Creator (a -> b) msgO -> Creator b msgO
+combine msgMapper innerInit creator =
+  pure innerInit |> hoist msgMapper |> apply creator
 
 {-| Modify an existing (model, Cmd) tuple with the result of another (model, Cmd) tuple
 -}

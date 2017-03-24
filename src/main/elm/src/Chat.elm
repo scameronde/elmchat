@@ -23,10 +23,8 @@ type alias Model =
     { participant : Participant
     , chatRoomModel : Maybe ChatRoom.Model
     , chatRoomsModel : ChatRooms.Model
-    , fooBar : FooBarModel
     }
 
-type FooBarModel = MkFooBarModel
 
 -- Model.init Model
 --  |> Model.apply Participant.init ParticipantMsg
@@ -34,16 +32,12 @@ type FooBarModel = MkFooBarModel
 --  |> Model.apply ChatRooms.init ChatRoomsMsg
 --  |> Model.get
 
-(<*|) = Model.ap
-(|*>) = flip (<*|)
 
 init : Participant -> ( Model, Cmd Msg )
 init participants =
-               Model.creator (Model participants Nothing)
-           |*> Model.hoist ChatRoomsMsg (Model.creator ChatRooms.init)
-           |*> Model.creator MkFooBarModel
-           |>  Model.run
-
+           Model.create (Model participants Nothing)
+           |> Model.combine ChatRoomsMsg ChatRooms.init
+           |> Model.run
 
 
 -- init participant =

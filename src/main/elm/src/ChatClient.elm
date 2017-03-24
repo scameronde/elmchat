@@ -26,9 +26,9 @@ type Model
 
 init : ( Model, Cmd Msg )
 init =
-    Model.init LoginModel
-        |> Model.apply Login.init LoginMsg
-        |> Model.get
+    Model.create LoginModel
+    |> Model.combine LoginMsg Login.init
+    |> Model.run
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

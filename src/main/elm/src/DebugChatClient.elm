@@ -22,9 +22,9 @@ type alias Model =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    Model.init (Model flags.debug)
-        |> Model.apply ChatClient.init identity
-        |> Model.get
+    Model.create (Model flags.debug)
+    |> Model.combine identity ChatClient.init
+    |> Model.run
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
