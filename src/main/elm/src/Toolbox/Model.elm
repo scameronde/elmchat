@@ -1,4 +1,4 @@
-module Toolbox.Model exposing (create, combine, run, map, andThenDo, insteadDo, modify )
+module Toolbox.Model exposing (create, set, combine, run, map, andThenDo, insteadDo, modify )
 
 {-| Helper functions for mapping and manipulating Tupels of (Model, Cmd).
 
@@ -40,9 +40,9 @@ run (Creator tupple) = tupple
 create : (a -> b) -> Creator (a -> b) m
 create f = pure (f, Cmd.none)
 
-{-| Combine a tuple (Model, Cmd) to the initialized tuple
+{-| Combine a tuple (Model, Cmd) with the created tuple
 
-    init (Model firstField secondField)
+    create (Model firstField secondField)
       |> combine Module1Msg Module1.init
 
     where the model part of Module1.init will be part of the resulting model and Module1Msg wraps
@@ -51,6 +51,17 @@ create f = pure (f, Cmd.none)
 combine : (msgI -> msgO) -> (a, Cmd msgI) -> Creator (a -> b) msgO -> Creator b msgO
 combine msgMapper innerInit creator =
   pure innerInit |> hoist msgMapper |> apply creator
+
+{-| Combine a simple value with the created tuple
+
+  create (Model firstField)
+    |> set secondField
+    |> combine Module1Msg Module1.init
+    |> set fourthField
+-}
+set : a -> Creator (a -> b) m -> Creator b m
+set value creator =
+  combine identity (value, Cmd.none) creator
 
 {-| Modify an existing (model, Cmd) tuple with the result of another (model, Cmd) tuple
 -}

@@ -26,24 +26,13 @@ type alias Model =
     }
 
 
--- Model.init Model
---  |> Model.apply Participant.init ParticipantMsg
---  |> Model.apply ChatRoom.init ChatRoomMsg
---  |> Model.apply ChatRooms.init ChatRoomsMsg
---  |> Model.get
-
-
 init : Participant -> ( Model, Cmd Msg )
-init participants =
-           Model.create (Model participants Nothing)
+init participant =
+           Model.create Model
+           |> Model.set participant
+           |> Model.set Nothing
            |> Model.combine ChatRoomsMsg ChatRooms.init
            |> Model.run
-
-
--- init participant =
---    Model.init (Model participant Nothing)
---        |> Model.apply ChatRooms.init ChatRoomsMsg
---        |> Model.get
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
