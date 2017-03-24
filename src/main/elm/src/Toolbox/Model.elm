@@ -1,4 +1,4 @@
-module Toolbox.Model exposing (init, apply, get, map, andThenDo, insteadDo, modify)
+module Toolbox.Model exposing (init, apply, get, map, andThenDo, insteadDo, modify, creator, pure, hoist, creatorFrom, ap, run)
 
 {-| Helper functions for mapping and manipulating Tupels of (Model, Cmd).
 
@@ -28,6 +28,30 @@ init : a -> ( Creator a, Cmd msg )
 init a =
     ( Creator a, Cmd.none )
 
+
+type CreatorA m a
+    = MkCreatorA ( a, Cmd m )
+
+pure : (a, Cmd m ) -> CreatorA m a
+pure =
+    MkCreatorA
+
+hoist : (m -> n) -> CreatorA m a -> CreatorA n a
+hoist f (MkCreatorA ( x, m )) =
+    MkCreatorA ( x, (Cmd.map f m) )
+
+creator : a -> CreatorA msgN a
+creator x = pure (x, Cmd.none)
+
+creatorFrom : (msg -> msgN) -> ( a, Cmd msg ) -> CreatorA msgN a
+creatorFrom msgMapper =
+    hoist msgMapper << pure
+
+ap : CreatorA m (a -> b) -> CreatorA m a -> CreatorA m b
+ap (MkCreatorA (f, cmd)) (MkCreatorA (i, cmdI)) = MkCreatorA (f i ! [cmd, cmdI])
+
+run : CreatorA msg a -> (a, Cmd msg)
+run (MkCreatorA x) = x
 
 {-| Apply a tuple (Model, Cmd) to the initialized tuple
 
