@@ -34,12 +34,12 @@ update msg model =
             Leaf3.update (Leaf3.Receive aMessage) model.leaf3Model
                 |> Model.map (\a -> { model | leaf3Model = a }) Leaf3Msg
 
-        Leaf3Msg (Leaf3.Send aMessage) ->
-            Leaf2.update (Leaf2.Receive aMessage) model.leaf2Model
-                |> Model.map (\a -> { model | leaf2Model = a }) Leaf2Msg
-
         Leaf2Msg imsg ->
             Leaf2.update imsg model.leaf2Model
+                |> Model.map (\a -> { model | leaf2Model = a }) Leaf2Msg
+
+        Leaf3Msg (Leaf3.Send aMessage) ->
+            Leaf2.update (Leaf2.Receive aMessage) model.leaf2Model
                 |> Model.map (\a -> { model | leaf2Model = a }) Leaf2Msg
 
         Leaf3Msg imsg ->
