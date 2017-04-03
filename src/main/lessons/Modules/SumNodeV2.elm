@@ -4,8 +4,6 @@ import Modules.Leaf1 as Leaf1
 import Modules.ProductNodeV2 as ProductNode
 import Toolbox.Model as Model
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 
 
 type Model

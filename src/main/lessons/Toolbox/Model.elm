@@ -1,4 +1,4 @@
-module Toolbox.Model exposing (create, set, combine, run, map, andThenDo, insteadDo, modify )
+module Toolbox.Model exposing (create, set, combine, run, map, andThenDo, insteadDo, modify)
 
 {-| Helper functions for mapping and manipulating Tupels of (Model, Cmd).
 
@@ -14,21 +14,30 @@ import Tuple exposing (..)
 
 
 type Creator a m
-    = Creator (a, Cmd m)
+    = Creator ( a, Cmd m )
 
-pure : (a, Cmd m) -> Creator a m
-pure = Creator
+
+pure : ( a, Cmd m ) -> Creator a m
+pure =
+    Creator
+
 
 hoist : (msgI -> msgO) -> Creator a msgI -> Creator a msgO
-hoist f (Creator (a, cmdI)) = Creator (a, Cmd.map f cmdI)
+hoist f (Creator ( a, cmdI )) =
+    Creator ( a, Cmd.map f cmdI )
+
 
 apply : Creator (a -> b) m -> Creator a m -> Creator b m
-apply (Creator (f, m1)) (Creator (a, m2)) = Creator (f a ! [m1, m2])
+apply (Creator ( f, m1 )) (Creator ( a, m2 )) =
+    Creator (f a ! [ m1, m2 ])
+
 
 {-| Extract the (model, Cmd msg) tuple
 -}
-run : Creator a m -> (a, Cmd m)
-run (Creator tupple) = tupple
+run : Creator a m -> ( a, Cmd m )
+run (Creator tupple) =
+    tupple
+
 
 {-| Prepare a new tuple (Model, Cmd) for initialization.
 
@@ -38,7 +47,9 @@ run (Creator tupple) = tupple
     with the use of @combine
 -}
 create : (a -> b) -> Creator (a -> b) m
-create f = pure (f, Cmd.none)
+create f =
+    pure ( f, Cmd.none )
+
 
 {-| Combine a tuple (Model, Cmd) with the created tuple
 
@@ -48,9 +59,10 @@ create f = pure (f, Cmd.none)
     where the model part of Module1.init will be part of the resulting model and Module1Msg wraps
     the msg type for the resulting Cmd
 -}
-combine : (msgI -> msgO) -> (a, Cmd msgI) -> Creator (a -> b) msgO -> Creator b msgO
+combine : (msgI -> msgO) -> ( a, Cmd msgI ) -> Creator (a -> b) msgO -> Creator b msgO
 combine msgMapper innerInit creator =
-  pure innerInit |> hoist msgMapper |> apply creator
+    pure innerInit |> hoist msgMapper |> apply creator
+
 
 {-| Combine a simple value with the created tuple
 
@@ -61,7 +73,8 @@ combine msgMapper innerInit creator =
 -}
 set : a -> Creator (a -> b) m -> Creator b m
 set value creator =
-  combine identity (value, Cmd.none) creator
+    combine identity ( value, Cmd.none ) creator
+
 
 {-| Modify an existing (model, Cmd) tuple with the result of another (model, Cmd) tuple
 -}

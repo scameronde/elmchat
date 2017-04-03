@@ -4,8 +4,6 @@ import Modules.Leaf2 as Leaf2
 import Modules.Leaf3 as Leaf3
 import Toolbox.Model as Model
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 
 
 type alias Model =

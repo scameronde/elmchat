@@ -3,8 +3,6 @@ module Modules.SumNode exposing (..)
 import Modules.Leaf1 as Leaf1
 import Modules.ProductNode as ProductNode
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 
 
 type Model
