@@ -34,11 +34,13 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Leaf 1" ]
-        , div []
-            [ label [] [ text "Input: " ]
-            , input [ type_ "text", onInput ChangeField ] []
+        , Html.form [ onSubmit (Exit model.message) ]
+            [ div []
+                [ label [] [ text "Input: " ]
+                , input [ type_ "text", onInput ChangeField ] []
+                ]
+            , button [] [ text "Leave" ]
             ]
-        , div [] [ button [ onClick (Exit model.message) ] [ text "Leave" ] ]
         ]
 
 
